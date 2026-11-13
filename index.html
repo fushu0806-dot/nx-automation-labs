@@ -2,91 +2,1983 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>公差計算ツール</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="基準寸法と上下の許容差から最大寸法・最小寸法を簡単計算。ISOはめあい、累積公差、NXジャーナルも使える機械設計ツールです。">
+<title>簡単公差計算｜寸法公差・ISOはめあい・累積公差</title>
 
 <style>
+:root{
+    --accent:#087f8c;
+    --ok:#287a45;
+    --warn:#b4531a;
+    --line:#d5dcdf;
+    --bg-soft:#f3f8f8;
+}
 body{
-    font-family: Arial;
-    max-width: 600px;
-    margin: 50px auto;
+    font-family: "Hiragino Sans","Meiryo",Arial,sans-serif;
+    max-width: 720px;
+    margin: 30px auto;
     padding:20px;
+    color:#1d2b2e;
+    line-height:1.6;
 }
-
+.skip-link{ position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden; }
+.skip-link:focus{ left:12px; top:12px; width:auto; height:auto; z-index:10; padding:8px 12px; background:#fff; border:2px solid var(--accent); }
+.lede{ font-size:16px; margin:4px 0 12px; }
+.quicklinks{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 18px; }
+.quicklinks button{ margin:0; padding:8px 14px; border:1px solid var(--accent); border-radius:6px; background:#fff; color:var(--accent); font-weight:600; }
+.quicklinks button:hover{ background:var(--bg-soft); }
+.guide{ margin-top:42px; border-top:2px solid var(--line); padding-top:8px; }
+.guide h3{ margin:24px 0 6px; color:var(--accent); font-size:17px; }
+.guide p{ margin:8px 0; }
+.guide table{ margin:10px 0 18px; }
+.guide details{ border-bottom:1px solid var(--line); padding:8px 0; }
+.guide summary{ cursor:pointer; font-weight:600; }
+.guide details p{ margin:8px 0 4px; }
 .banner{
-    width:100%;
-    max-height:200px;
-    object-fit:contain;
-    display:block;
-    margin-bottom:20px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    margin:0 0 16px; padding:12px 16px; border-radius:8px; text-decoration:none;
+    background:linear-gradient(90deg,#087f8c,#0b9aa8); color:#fff;
 }
-
-h1{
-    color:#087f8c;
+.banner:hover{ filter:brightness(1.06); }
+.banner b{ font-size:15px; }
+.banner span{ font-size:13px; opacity:.95; }
+.banner .go{ background:#fff; color:var(--accent); font-weight:bold; padding:5px 14px; border-radius:16px; font-size:13px; opacity:1; }
+.tabsep{ align-self:center; font-size:12px; color:#58686c; padding:0 6px 0 12px; border-left:2px solid var(--line); margin-left:6px; }
+.entry .big{ font-size:22px; font-weight:bold; }
+.entry .big small{ font-size:13px; font-weight:normal; color:#58686c; }
+.entry .tbl3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:6px; }
+.entry .tbl3 div{ border:1px solid var(--line); border-radius:6px; padding:8px 10px; background:var(--bg-soft); }
+.entry .tbl3 small{ display:block; color:#58686c; font-size:12px; }
+.entry .tbl3 b{ font-size:20px; color:var(--ok); }
+@media (max-width:560px){ .entry .tbl3{ grid-template-columns:1fr; } }
+.nextbox{ margin-top:18px; border:1px dashed var(--accent); border-radius:8px; padding:10px 14px; }
+.nextbox h3{ margin:0 0 4px; font-size:15px; color:var(--accent); }
+.nextbox p{ margin:2px 0 6px; font-size:13px; color:#58686c; }
+.nextbox button{ margin:4px 6px 0 0; padding:7px 14px; background:#fff; border:1px solid var(--accent); color:var(--accent); border-radius:16px; }
+.nextbox button:hover{ background:var(--bg-soft); }
+.nx-next{ margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
+.nx-next p{ margin:2px 0 6px; }
+.nx-next button{ background:var(--accent); color:#fff; border-color:var(--accent); }
+h1{ color:var(--accent); }
+h2{
+    color:var(--accent);
+    border-bottom:2px solid var(--accent);
+    padding-bottom:4px;
+    margin-top:40px;
 }
-
-input{
+label{ font-size:14px; display:block; margin-top:8px; }
+input,select{
     width:100%;
     padding:8px;
     margin:5px 0;
+    box-sizing:border-box;
+    font-size:16px;
 }
-
 button{
     padding:10px 20px;
     margin-top:10px;
     cursor:pointer;
 }
-
+button:focus-visible,input:focus-visible,select:focus-visible{
+    outline:3px solid var(--accent);
+    outline-offset:1px;
+}
+.row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.pair{ display:grid; grid-template-columns:2fr 1fr; gap:8px; }
+.presets{ display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 4px; }
+.presets button{
+    margin:0; padding:5px 12px;
+    background:#fff; border:1px solid var(--accent);
+    color:var(--accent); border-radius:16px;
+}
+.presets button:hover{ background:var(--bg-soft); }
 .result{
     margin-top:20px;
     border:1px solid #ccc;
     padding:10px;
 }
+.result span{ color:var(--ok); font-weight:bold; }
+table{ border-collapse:collapse; width:100%; font-size:14px; }
+th,td{ border:1px solid var(--line); padding:6px 8px; text-align:right; }
+th:first-child,td:first-child{ text-align:left; }
+th{ background:var(--bg-soft); font-weight:600; }
+.badge{
+    display:inline-block; padding:4px 14px; border-radius:4px;
+    color:#fff; font-weight:bold; margin:8px 0;
+}
+.b-clear{ background:var(--ok); }
+.b-trans{ background:#8a6d00; }
+.b-inter{ background:var(--warn); }
+.msg{ color:var(--warn); margin-top:10px; }
+.note{ font-size:12px; color:#58686c; margin-top:12px; }
+#zone{ width:100%; max-width:360px; display:block; margin:12px 0; }
+.tabs{ display:flex; flex-wrap:wrap; gap:4px; border-bottom:2px solid var(--accent); margin:24px 0 0; }
+.tabs button{
+    margin:0; padding:10px 16px; background:#fff; color:var(--accent);
+    border:1px solid var(--line); border-bottom:none; border-radius:6px 6px 0 0; font-size:15px;
+}
+.tabs button[aria-selected="true"]{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.panel h2:first-child{ margin-top:24px; }
+.grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+@media (max-width:560px){ .grid3{ grid-template-columns:1fr 1fr; } }
+.chk{ display:flex; align-items:center; gap:8px; margin-top:12px; }
+.chk input{ width:auto; margin:0; }
+#jCode{
+    width:100%; height:280px; box-sizing:border-box;
+    font-family:Consolas,"Courier New",monospace; font-size:12px; padding:8px;
+}
+.warnbox{ background:#fff6e5; border-left:4px solid var(--warn); padding:6px 12px; margin:10px 0; font-size:14px; }
+.btnrow{ display:flex; gap:8px; flex-wrap:wrap; }
+.scroll{ overflow-x:auto; }
+#stackTable input,#stackTable select{ margin:0; padding:6px; min-width:70px; }
+#stackTable td:first-child input{ min-width:110px; }
+#stackTable td{ text-align:left; }
+.del{ margin:0; padding:4px 10px; }
+.limits{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.ng{ color:var(--warn); font-weight:bold; }
+.okc{ color:var(--ok); font-weight:bold; }
 
-.result span{
-    color:#287a45;
-    font-weight:bold;
+.ckrow{ display:flex; gap:6px; align-items:flex-start; }
+.ckrow label{ flex:1; display:flex; gap:8px; align-items:flex-start; margin:0; padding:7px 4px; cursor:pointer; border-bottom:1px solid var(--line); }
+.ckrow input{ width:auto; margin:5px 0 0; }
+.ckrow label.done span{ color:#58686c; text-decoration:line-through; }
+#ckList h3{ color:var(--accent); font-size:16px; margin:22px 0 4px; }
+#ckBar{ width:100%; height:14px; accent-color:var(--ok); }
+#ckMemo{ width:100%; height:90px; box-sizing:border-box; font-size:14px; padding:8px; }
+@media print{ .tabs,.banner,h1,button,.noprint{ display:none !important; } body{ margin:0; max-width:none; } }
+.fitlink{ border:1px solid var(--accent); background:var(--bg-soft); border-radius:6px; padding:10px 14px; margin:14px 0; }
+.fitlink button{ margin-top:8px; }
+#p-verify h3{ color:var(--accent); font-size:16px; margin:26px 0 6px; }
+#p-verify details{ border-bottom:1px solid var(--line); padding:6px 0; }
+#p-verify summary{ cursor:pointer; font-weight:600; }
+#p-verify details p{ margin:6px 0 6px 12px; font-size:14px; }
+.hrow{ border-bottom:1px solid var(--line); padding:8px 0; }
+.hrow pre{ white-space:pre-wrap; margin:4px 0; font-size:13px; background:var(--bg-soft); padding:8px; border-radius:4px; }
+.adslot{ margin:36px 0 8px; text-align:center; }
+.adslot small{ display:block; font-size:11px; color:#58686c; margin-bottom:2px; }
+.sitefoot{ margin-top:28px; padding-top:12px; border-top:1px solid var(--line); font-size:12px; color:#58686c; }
+.sitefoot code{ overflow-wrap:anywhere; }
+@media print{ .adslot,.sitefoot{ display:none !important; } }
+
+/* 白を基調に、奥行きと視認性を両立するグラス調UI */
+:root{
+    color-scheme:light;
+    --accent:#2869a8;
+    --ok:#24754f;
+    --warn:#99601b;
+    --line:rgba(42,72,112,.14);
+    --bg-soft:#f1f6fc;
+    --text:#1b2b40;
+    --muted:#61738a;
+    --glass:rgba(255,255,255,.78);
+    --glass-strong:rgba(255,255,255,.94);
+}
+html{scroll-behavior:smooth}
+body{
+    max-width:1120px;
+    margin:0 auto;
+    padding:48px 28px 56px;
+    color:var(--text);
+    background:
+        radial-gradient(ellipse at 12% 0%,rgba(92,174,218,.14),transparent 38%),
+        radial-gradient(ellipse at 88% 18%,rgba(139,128,208,.11),transparent 34%),
+        linear-gradient(160deg,#f8fbff 0%,#eef4fb 52%,#f9fbff 100%);
+    background-attachment:fixed;
+}
+main{max-width:1040px;margin:0 auto}
+h1{
+    color:#172b43;
+    font-size:clamp(2rem,4.2vw,3.2rem);
+    line-height:1.15;
+    letter-spacing:-.045em;
+    margin:8px 0 14px;
+}
+.lede{max-width:70ch;color:#43566e;font-size:17px;line-height:1.8;margin:0 0 22px}
+h2{color:#203750;border-bottom:1px solid var(--line);padding-bottom:12px;margin-top:32px}
+h3{color:#2c4b6c}
+.tabs{
+    position:sticky;
+    top:10px;
+    z-index:5;
+    gap:4px;
+    margin:24px 0 14px;
+    padding:8px;
+    border:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    border-radius:18px;
+    background:rgba(255,255,255,.82);
+    box-shadow:0 12px 36px rgba(41,67,103,.09);
+    backdrop-filter:blur(22px) saturate(135%);
+    -webkit-backdrop-filter:blur(22px) saturate(135%);
+}
+.tabs button{
+    flex:0 0 auto;
+    padding:8px 10px;
+    border:1px solid transparent;
+    border-bottom:1px solid transparent;
+    border-radius:12px;
+    background:transparent;
+    color:#50647d;
+    font-size:12px;
+    font-weight:600;
+}
+.tabs button[aria-selected="true"]{
+    border-color:rgba(40,105,168,.2);
+    background:linear-gradient(135deg,rgba(84,166,219,.16),rgba(132,123,207,.12));
+    color:#1e5d91;
+    box-shadow:inset 0 1px rgba(255,255,255,.9),0 4px 18px rgba(69,118,170,.1);
+}
+.tabsep{color:#77879a;font-size:10px;letter-spacing:.04em;padding:0 4px 0 8px;margin-left:3px}
+.panel,.guide{
+    border:1px solid var(--line);
+    border-radius:24px;
+    background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(249,252,255,.92));
+    box-shadow:0 24px 70px rgba(41,67,103,.1),inset 0 1px rgba(255,255,255,.95);
+    backdrop-filter:blur(18px) saturate(125%);
+    -webkit-backdrop-filter:blur(18px) saturate(125%);
+}
+.panel{padding:clamp(18px,3vw,34px)}
+.panel h2:first-child{margin-top:0}
+.guide{margin-top:30px;padding:clamp(18px,3vw,32px)}
+.guide h3{color:#356b9b}
+label{color:#344a63;font-weight:600;font-size:13px}
+input,select,textarea{
+    color:#1b2b40;
+    background:rgba(255,255,255,.94);
+    border:1px solid rgba(63,91,127,.2);
+    border-radius:12px;
+    min-height:44px;
+}
+input::placeholder,textarea::placeholder{color:#8290a1}
+input:hover,select:hover,textarea:hover{border-color:rgba(40,105,168,.45)}
+button{
+    color:#344a63;
+    background:rgba(255,255,255,.8);
+    border:1px solid rgba(63,91,127,.18);
+    border-radius:12px;
+    font-weight:600;
+    transition:background .16s ease,border-color .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+button:hover{
+    background:rgba(229,241,252,.9);
+    border-color:rgba(40,105,168,.35);
+    box-shadow:0 5px 18px rgba(41,67,103,.1);
+    transform:translateY(-1px);
+}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{
+    outline:3px solid #4b91c5;
+    outline-offset:3px;
+}
+.presets button{color:#2a5c83;background:rgba(224,241,252,.7);border-color:rgba(72,134,178,.2)}
+.result,.fitlink{
+    color:var(--text);
+    background:rgba(246,250,255,.84);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px;
+}
+.entry .result{background:linear-gradient(135deg,rgba(106,186,225,.13),rgba(158,147,224,.1));border-color:rgba(72,134,178,.22)}
+.entry .tbl3 div{background:rgba(255,255,255,.78);border-color:var(--line)}
+.entry .tbl3 small,.note,.nextbox p{color:var(--muted)}
+.entry .tbl3 b{color:#24754f}
+.nextbox{border:1px solid rgba(72,134,178,.2);border-radius:18px;background:rgba(237,246,253,.76);padding:16px}
+.nx-next{border-color:var(--line)}
+.nx-next button{background:linear-gradient(120deg,#397fae,#6e70b9);color:#fff;border-color:rgba(54,111,161,.3)}
+.warnbox{color:#754a13;background:#fff7e9;border-left-color:#d9942e;border-radius:4px 12px 12px 4px}
+.msg,.ng{color:#a63f32}
+.okc,.result span{color:var(--ok)}
+table{color:#263b53}
+th{background:#edf3f9;color:#2d4661}
+th,td{border-color:var(--line)}
+td{background:rgba(255,255,255,.6)}
+.badge{border-radius:999px}
+.b-clear{background:#24754f}
+.b-trans{background:#8c681c}
+.b-inter{background:#a64d3e}
+.fitlink{background:rgba(235,244,251,.8)}
+.hrow pre,#jCode,#ckMemo{color:#263b53;background:rgba(246,250,255,.92);border:1px solid var(--line);border-radius:12px}
+.sitefoot{color:var(--muted);border-top-color:var(--line)}
+.sitefoot a{color:#2869a8}
+.adslot small{color:var(--muted)}
+.skip-link:focus{color:#172b43;background:#fff}
+@media(max-width:700px){
+    body{padding:28px 16px 40px}
+    .tabs{position:static;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}
+    .tabsep{flex:0 0 auto}
+    .panel,.guide{border-radius:18px}
+    .row,.limits{grid-template-columns:1fr}
+    .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:420px){
+    body{padding:22px 12px 32px}
+    .grid3{grid-template-columns:1fr}
+    .tabs button{padding:9px 11px}
+}
+@media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{transition:none!important;animation:none!important}
+}
+@media print{
+    body{color:#111;background:#fff;padding:0}
+    .panel,.guide{color:#111;background:#fff;box-shadow:none;border-color:#aaa}
+    label,h1,h2,h3,.note{color:#111}
+    input,select,textarea{color:#111;background:#fff;border-color:#aaa}
 }
 </style>
 </head>
 
 <body>
 
-<img src="leaf.png" alt="バナー" class="banner">
+<a class="skip-link" href="#main-content">計算ツールへ移動</a>
 
-<h1>公差計算ツール</h1>
+<main id="main-content">
 
-<label>基準寸法(mm)</label>
-<input id="base" type="number" step="0.001">
+<h1>簡単公差計算</h1>
+<p class="lede">基準寸法と上下の許容差から、最大寸法・最小寸法・公差幅を計算します。寸法はこのブラウザー内で処理されます。必要に応じて、はめあいやNXジャーナルなど設計の次の作業へ進めます。</p>
 
-<label>上限公差(mm)</label>
-<input id="upper" type="number" step="0.001">
+<div class="tabs" role="tablist" aria-label="機能の切り替え">
+    <button type="button" role="tab" id="t-simple" data-tab="simple" aria-controls="p-simple" aria-selected="true" tabindex="0">寸法公差</button>
+    <button type="button" role="tab" id="t-fit" data-tab="fit" aria-controls="p-fit" aria-selected="false" tabindex="-1">ISOはめあい</button>
+    <button type="button" role="tab" id="t-stack" data-tab="stack" aria-controls="p-stack" aria-selected="false" tabindex="-1">累積公差</button>
+    <span class="tabsep">設計ツール</span>
+    <button type="button" role="tab" id="t-nx" data-tab="nx" aria-controls="p-nx" aria-selected="false" tabindex="-1">NXジャーナル</button>
+    <button type="button" role="tab" id="t-elem" data-tab="elem" aria-controls="p-elem" aria-selected="false" tabindex="-1">機械要素計算</button>
+    <button type="button" role="tab" id="t-check" data-tab="check" aria-controls="p-check" aria-selected="false" tabindex="-1">図面チェック</button>
+    <button type="button" role="tab" id="t-verify" data-tab="verify" aria-controls="p-verify" aria-selected="false" tabindex="-1">計算の根拠</button>
+</div>
 
-<label>下限公差(mm)</label>
-<input id="lower" type="number" step="0.001">
+<div class="panel" id="p-fit" role="tabpanel" aria-labelledby="t-fit" hidden>
 
-<button onclick="calc()">計算</button>
+<h2>ISOはめあい（JIS B 0401 / ISO 286）</h2>
 
-<div class="result">
-<p>最大寸法：<span id="max"></span></p>
-<p>最小寸法：<span id="min"></span></p>
-<p>公差幅：<span id="width"></span></p>
+<label for="fitSize">呼び寸法（mm）</label>
+<p class="note">対応範囲：3 mmを超え、500 mm以下</p>
+<input id="fitSize" type="number" step="0.001" value="25" min="3.001" max="500">
+
+<div class="presets" id="presets" aria-label="よく使うはめあい">
+    <button type="button" data-h="H7" data-s="g6">H7/g6</button>
+    <button type="button" data-h="H7" data-s="h6">H7/h6</button>
+    <button type="button" data-h="H7" data-s="k6">H7/k6</button>
+    <button type="button" data-h="H7" data-s="n6">H7/n6</button>
+    <button type="button" data-h="H7" data-s="p6">H7/p6</button>
+    <button type="button" data-h="H8" data-s="f7">H8/f7</button>
+    <button type="button" data-h="H9" data-s="d9">H9/d9</button>
+    <button type="button" data-h="P7" data-s="h6">P7/h6</button>
+</div>
+
+<div class="row">
+    <div>
+        <label>穴の公差域クラス</label>
+        <div class="pair">
+            <select id="holeLetter"></select>
+            <select id="holeGrade"></select>
+        </div>
+    </div>
+    <div>
+        <label>軸の公差域クラス</label>
+        <div class="pair">
+            <select id="shaftLetter"></select>
+            <select id="shaftGrade"></select>
+        </div>
+    </div>
+</div>
+
+<button onclick="calcFit()">はめあいを計算</button>
+
+<div class="result" id="fitResult" aria-live="polite">
+    <p>呼び寸法とクラスを選んで「はめあいを計算」を押してください。</p>
+</div>
+
+<p class="note">
+    対応：穴 D E F G H JS K M N P／軸 d e f g h js k m n p、公差等級 IT5〜IT11。
+    K・M・Nは IT5〜8、Pは IT5〜7 のみ対応。計算結果は参考値です。
+    実際の設計・図面への採用前に、必ずJIS B 0401-2／ISO 286-2などの規格で確認してください。
+</p>
+
+</div>
+
+<!--NX_TOOL_MARKUP_START-->
+<div class="panel" id="p-nx" role="tabpanel" aria-labelledby="t-nx" hidden>
+
+<h2>NXジャーナル｜板と穴パターン</h2>
+
+<p class="note" style="margin-top:0">
+    板の寸法と穴の配置を指定して、NXで再生できるPythonジャーナルを作成します。コード生成はブラウザー内で完結し、入力値は送信されません。
+</p>
+<div class="warnbox">
+    このHTMLを開いただけではNXや社内ファイルに変更は加わりません。生成コードはダウンロード前に全文を確認してください。
+    NXで実行すると、現在のワークパートに板形状を作成します。mm単位の空パート専用で、既存ボディがあるパートでは処理を中止します。
+</div>
+
+<div class="grid3">
+    <div><label for="jL">板の長さ X (mm)</label><input id="jL" type="number" step="0.1" value="100"></div>
+    <div><label for="jW">板の幅 Y (mm)</label><input id="jW" type="number" step="0.1" value="60"></div>
+    <div><label for="jT">板厚 Z (mm)</label><input id="jT" type="number" step="0.1" value="10"></div>
+</div>
+
+<label for="jBolt">ボルト呼びから入力（六角穴付きボルト用の目安値）</label>
+<select id="jBolt" onchange="applyBolt()">
+    <option value="">手入力</option>
+    <option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M8</option><option>M10</option>
+</select>
+
+<div class="fitlink" id="jFitBox" hidden>
+    <b>はめあい連携中：</b><span id="jFitText"></span>
+    <label for="jFitMode">穴径をモデル化する寸法</label>
+    <select id="jFitMode">
+        <option value="mid">公差域の中央値（推奨）</option>
+        <option value="max">最大許容寸法</option>
+        <option value="min">最小許容寸法</option>
+        <option value="nom">呼び寸法</option>
+    </select>
+    <button type="button" id="jFitOff">連携を解除</button>
+</div>
+
+<div class="grid3">
+    <div><label for="jKind">穴の種類</label>
+        <select id="jKind"><option value="thru">通し穴</option><option value="tap">ねじ下穴（止まり）</option><option value="slot">長穴（通し）</option></select></div>
+    <div><label for="jLay">配置</label>
+        <select id="jLay"><option value="grid">格子</option><option value="circle">円周（PCD）</option></select></div>
+    <div><label for="jD">穴径・長穴幅 (mm)</label><input id="jD" type="number" step="0.01" value="6.6"></div>
+</div>
+<div class="grid3" id="jTapBox" hidden>
+    <div><label for="jTap">ねじ呼び（下穴径を自動入力）</label>
+        <select id="jTap"><option value="">手入力</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M8</option><option>M10</option></select></div>
+    <div><label for="jTD">下穴深さ (mm)</label><input id="jTD" type="number" step="0.1" value="12"></div>
+</div>
+<div class="grid3" id="jSlotBox" hidden>
+    <div><label for="jSL">長穴の長さ（円弧中心間, mm）</label><input id="jSL" type="number" step="0.1" value="10"></div>
+    <div><label for="jSDir">長手方向</label>
+        <select id="jSDir"><option value="X">X方向</option><option value="Y">Y方向</option></select></div>
+</div>
+<div class="grid3" id="jGridBox">
+    <div><label for="jNX">X方向の個数</label><input id="jNX" type="number" step="1" min="1" value="3"></div>
+    <div><label for="jNY">Y方向の個数</label><input id="jNY" type="number" step="1" min="1" value="2"></div>
+    <div><label for="jPX">X方向ピッチ (mm)</label><input id="jPX" type="number" step="0.1" value="30"></div>
+    <div><label for="jPY">Y方向ピッチ (mm)</label><input id="jPY" type="number" step="0.1" value="30"></div>
+</div>
+<div class="grid3" id="jCircBox" hidden>
+    <div><label for="jPCD">ピッチ円直径 PCD (mm)</label><input id="jPCD" type="number" step="0.1" value="40"></div>
+    <div><label for="jN">個数</label><input id="jN" type="number" step="1" min="1" value="6"></div>
+    <div><label for="jA0">開始角 (°, +X軸から反時計回り)</label><input id="jA0" type="number" step="1" value="0"></div>
+</div>
+
+<div id="jCbBox">
+<div class="chk"><input id="jCB" type="checkbox"><label for="jCB" style="margin:0">座ぐりを付ける（板の上面側）</label></div>
+<div class="grid3">
+    <div><label for="jCD">座ぐり径 (mm)</label><input id="jCD" type="number" step="0.1" value="11"></div>
+    <div><label for="jCH">座ぐり深さ (mm)</label><input id="jCH" type="number" step="0.1" value="6.5"></div>
+</div>
+</div>
+
+<div class="btnrow"><button onclick="genJournal()">ジャーナルを生成</button><!--NX_CONFIG_IO_START--><button type="button" id="jSave">設定を保存（.json）</button><button type="button" id="jLoad">設定を読み込み</button><!--NX_CONFIG_IO_END--></div>
+<!--NX_CONFIG_IO_START--><input type="file" id="jLoadF" accept=".json,application/json" hidden><!--NX_CONFIG_IO_END-->
+<p class="note" id="jMsg" aria-live="polite"></p>
+
+<div class="result" id="jResult" aria-live="polite">
+    <p>値を入力して「ジャーナルを生成」を押してください。穴パターンは板の中心に配置されます。</p>
+</div>
+
+<div id="jOut" style="display:none">
+    <label for="jCode">生成されたPythonジャーナル</label>
+    <textarea id="jCode" readonly spellcheck="false"></textarea>
+    <div class="btnrow">
+        <button type="button" onclick="dlJournal()">.pyをダウンロード</button>
+        <button type="button" onclick="copyJournal()">コードをコピー</button>
+    </div>
+</div>
+
+<p class="note">
+    使い方：mm単位の空のパートをNXで開き、ジャーナルを再生します（「開発」タブまたは「ツール」メニューのジャーナル再生）。
+    ジャーナルは実行時に既存ボディを検出すると中止し、作成開始後のエラーはUndoマークまで戻します。
+    ジャーナル言語がPythonで使えるNXが対象です。生成コードは全文表示しているので、実行前に内容を確認してください。
+    NXのバージョンにより、API名が異なる場合があります。エラーはNXの情報ウィンドウに表示されます。
+    ボルト呼びの値は目安です。JIS B 1001 / B 1176 などで確認してください。
+</p>
+
+</div>
+
+<!--NX_TOOL_MARKUP_END-->
+<div class="panel" id="p-stack" role="tabpanel" aria-labelledby="t-stack" hidden>
+
+<h2>累積公差｜最悪条件とRSS</h2>
+
+<p class="note" style="margin-top:0">
+    組立寸法を構成する寸法を入力します。すきまを大きくする寸法は「＋」、小さくする寸法は「－」を選択してください。
+    上側・下側許容差は符号付きで入力します（例：+0.3 / 0）。
+</p>
+
+<div class="scroll">
+<table id="stackTable">
+    <thead><tr><th>寸法名</th><th>寸法（mm）</th><th>上側許容差</th><th>下側許容差</th><th>向き</th><th></th></tr></thead>
+    <tbody id="stackBody"></tbody>
+</table>
+</div>
+<div class="btnrow">
+    <button type="button" onclick="addRow()">寸法を追加</button>
+    <button type="button" onclick="clearRows()">全行クリア</button>
+    <button type="button" onclick="saveStackCsv()">CSV保存</button>
+    <button type="button" onclick="$('stkF').click()">CSV読み込み</button>
+</div>
+<input type="file" id="stkF" accept=".csv,text/csv" hidden>
+<p class="note" id="stkMsg" aria-live="polite" style="margin-top:6px"></p>
+
+<div class="limits">
+    <div>
+        <label for="limLow">合格範囲の下限 (mm)　※省略可</label>
+        <input id="limLow" type="number" step="0.001" placeholder="例：0">
+    </div>
+    <div>
+        <label for="limUp">合格範囲の上限 (mm)　※省略可</label>
+        <input id="limUp" type="number" step="0.001">
+    </div>
+</div>
+
+<label for="sigK">不良率の見積もり：各寸法の公差を何σ相当とみなすか（合格範囲を入力したときのみ使用）</label>
+<select id="sigK">
+    <option value="3">3σ（Cp=1.00相当）</option>
+    <option value="4">4σ（Cp=1.33相当）</option>
+    <option value="6">6σ（Cp=2.00相当）</option>
+</select>
+
+<button onclick="calcStack()">積み上げを計算</button>
+
+<div class="result" id="stackResult" aria-live="polite">
+    <p>寸法を入力して「積み上げを計算」を押してください。</p>
+</div>
+
+<p class="note">
+    最悪条件（ワーストケース）は、全寸法が同時に公差限界に達する前提で評価します。RSS（公差の二乗和平方根）は、寸法が独立にばらつくと仮定した統計的な推定です。
+    RSSは適合を保証しません。安全や機能の限界を確認する場合は、最悪条件も確認してください。
+</p>
+
+</div>
+
+<div class="panel" id="p-elem" role="tabpanel" aria-labelledby="t-elem" hidden>
+
+<h2>機械要素の概算</h2>
+<label for="eSel">計算の種類</label>
+<select id="eSel">
+    <option value="bolt">ボルト締結（締付けトルク・軸力・許容荷重）</option>
+    <option value="spring">圧縮コイルばね</option>
+    <option value="brg">軸受寿命（L10）</option>
+    <option value="pw">トルク・動力</option>
+</select>
+
+<div id="e-bolt">
+<div class="grid3">
+    <div><label for="eBd">ボルト呼び（並目ねじ）</label>
+        <select id="eBd"><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option selected>M8</option><option>M10</option><option>M12</option><option>M14</option><option>M16</option><option>M20</option></select></div>
+    <div><label for="eBc">強度区分</label>
+        <select id="eBc"><option>4.6</option><option selected>8.8</option><option>10.9</option><option>12.9</option></select></div>
+    <div><label for="eBu">締付けに使う耐力の割合</label>
+        <select id="eBu"><option value="0.6">60%</option><option value="0.7" selected>70%</option><option value="0.8">80%</option></select></div>
+    <div><label for="eBk">トルク係数 K</label>
+        <select id="eBk"><option value="0.15">0.15（油・グリース潤滑）</option><option value="0.2" selected>0.20（一般・無潤滑）</option><option value="0.25">0.25（乾燥・めっきなど）</option></select></div>
+    <div><label for="eBn">ボルト本数</label><input id="eBn" type="number" step="1" min="1" value="4"></div>
+    <div><label for="eBs">安全率（許容荷重用）</label><input id="eBs" type="number" step="0.1" value="2"></div>
+    <div><label for="eBmu">接触面の摩擦係数 μ</label><input id="eBmu" type="number" step="0.01" value="0.15"></div>
+</div>
+<button onclick="calcBolt()">計算</button>
+<div class="result" id="eBoltR" aria-live="polite"><p>条件を選んで「計算」を押してください。</p></div>
+</div>
+
+<div id="e-spring" hidden>
+<div class="grid3">
+    <div><label for="eSd">線径 d (mm)</label><input id="eSd" type="number" step="0.1" value="2"></div>
+    <div><label for="eSD">コイル平均径 D (mm)</label><input id="eSD" type="number" step="0.1" value="16"></div>
+    <div><label for="eSn">有効巻数 n</label><input id="eSn" type="number" step="0.5" value="8"></div>
+    <div><label for="eSx">たわみ δ (mm)</label><input id="eSx" type="number" step="0.1" value="5"></div>
+    <div><label for="eSg">横弾性係数 G</label>
+        <select id="eSg"><option value="78500">鋼線（SWP・SUP など）78.5 GPa</option><option value="69000">ステンレス線（SUS304）69 GPa</option></select></div>
+</div>
+<button onclick="calcSpring()">計算</button>
+<div class="result" id="eSpringR" aria-live="polite"><p>値を入力して「計算」を押してください。</p></div>
+</div>
+
+<div id="e-brg" hidden>
+<div class="grid3">
+    <div><label for="eLt">軸受の種類</label>
+        <select id="eLt"><option value="3">玉軸受（指数 3）</option><option value="3.3333">ころ軸受（指数 10/3）</option></select></div>
+    <div><label for="eLc">基本動定格荷重 C (kN)</label><input id="eLc" type="number" step="0.1" value="12.7"></div>
+    <div><label for="eLp">動等価荷重 P (kN)</label><input id="eLp" type="number" step="0.1" value="3"></div>
+    <div><label for="eLn">回転数 n (rpm)</label><input id="eLn" type="number" step="1" value="1500"></div>
+</div>
+<button onclick="calcBrg()">計算</button>
+<div class="result" id="eBrgR" aria-live="polite"><p>値を入力して「計算」を押してください。</p></div>
+</div>
+
+<div id="e-pw" hidden>
+<p class="note" style="margin-top:0">回転数と、動力またはトルクのどちらか一方を入力します。</p>
+<div class="grid3">
+    <div><label for="ePn">回転数 n (rpm)</label><input id="ePn" type="number" step="1" value="1500"></div>
+    <div><label for="ePp">動力 P (kW)</label><input id="ePp" type="number" step="0.01" value="0.75"></div>
+    <div><label for="ePt">トルク T (N·m)</label><input id="ePt" type="number" step="0.01" placeholder="空欄なら動力から計算"></div>
+</div>
+<button onclick="calcPw()">計算</button>
+<div class="result" id="ePwR" aria-live="polite"><p>値を入力して「計算」を押してください。</p></div>
+</div>
+
+<p class="note">
+    いずれも一般的な式による概算です。ボルトの有効断面積は並目ねじ、耐力は ISO 898-1 の強度区分（M16以下）の代表値を使っています。
+    締付けトルクは K のばらつきで軸力が大きく変わります。実際の設計では、社内基準・メーカーカタログ・規格で確認してください。
+</p>
+
+</div>
+
+<div class="panel" id="p-check" role="tabpanel" aria-labelledby="t-check" hidden>
+
+<h2>図面チェックリスト</h2>
+
+<p class="note" style="margin-top:0">
+    図面の種類を選び、確認した項目にチェックを入れます。チェック状態・メモ・追加項目はこのブラウザ内にだけ保存され、サーバーには送信されません。
+</p>
+
+<div class="row">
+    <div>
+        <label for="ckType">図面の種類</label>
+        <select id="ckType">
+            <option value="part">切削部品図</option>
+            <option value="sheet">板金部品図</option>
+            <option value="asm">組立図</option>
+        </select>
+    </div>
+    <div>
+        <label for="ckName">図番・図面名（結果のコピー・印刷に入ります）</label>
+        <input id="ckName" type="text" placeholder="例：A-1234 ベースプレート">
+    </div>
+</div>
+
+<p id="ckSum" aria-live="polite" style="margin-bottom:4px"></p>
+<progress id="ckBar" max="100" value="0"></progress>
+
+<div id="ckList"></div>
+
+<div class="noprint">
+    <label for="ckNew">自分用のチェック項目を追加（全図面共通で保存されます）</label>
+    <div class="pair">
+        <input id="ckNew" type="text" placeholder="例：社内標準の注記が入っている">
+        <button type="button" id="ckAdd" style="margin:5px 0">追加</button>
+    </div>
+</div>
+
+<label for="ckMemo">指摘メモ</label>
+<textarea id="ckMemo" placeholder="指摘内容・修正依頼など"></textarea>
+
+<div class="btnrow">
+    <button type="button" id="ckCopy">結果をコピー</button>
+    <button type="button" id="ckPrint">印刷</button>
+    <button type="button" id="ckReset">チェックを解除</button>
+</div>
+<p class="note" id="ckMsg" aria-live="polite"></p>
+
+<p class="note">
+    項目は一般的な目安です。社内の図面規格・検図基準に合わせて、項目の追加や読み替えをしてください。
+    このリストは設計者本人による確認を助けるものであり、検図者の最終確認に代わるものではありません。
+</p>
+
+</div>
+
+<div class="panel" id="p-verify" role="tabpanel" aria-labelledby="t-verify" hidden>
+
+<h2>計算の根拠・早見表・履歴</h2>
+
+<h3>計算の自己検証</h3>
+<p class="note" style="margin-top:0">このサイトの計算ロジックを、規格表の値・手計算の値と照合します（ブラウザ内で実行）。</p>
+<button type="button" id="vRun">自己検証を実行</button>
+<div class="result" id="vOut" aria-live="polite"><p>「自己検証を実行」を押してください。</p></div>
+
+<h3>根拠とした規格・式</h3>
+<details><summary>ISOはめあい</summary>
+<p>JIS B 0401-1/-2（ISO 286-1/-2）。最大すきま＝穴の上の許容差(ES)－軸の下の許容差(ei)、最小すきま＝穴の下の許容差(EI)－軸の上の許容差(es)。対応範囲は3超〜500mm、公差等級IT5〜11（一部のクラスは制限あり）。</p></details>
+<details><summary>公差積み上げ</summary>
+<p>ワーストケース WC＝ΣT、二乗和平方根 RSS＝√(ΣT²)。不良率の目安は、σ＝RSS／k（kは公差を何σ相当とみなすか）、確率＝Φ((下限－中心)/σ)＋Φ((中心－上限)/σ)、Cpk＝min(上限－中心, 中心－下限)／(3σ)。各寸法は独立な正規分布と仮定した概算です。</p></details>
+<details><summary>ボルト締結</summary>
+<p>軸力 F＝使用割合 u×耐力σy×有効断面積As、締付けトルク T＝K×d×F。許容引張＝σy×As／安全率、許容せん断＝0.6σy×As／安全率、摩擦横荷重＝μ×F×本数。有効断面積は並目ねじ（JIS B 1082）、耐力は強度区分（ISO 898-1／JIS B 1051、M16以下）の代表値です。</p></details>
+<details><summary>圧縮コイルばね</summary>
+<p>k＝G×d⁴／(8×D³×n)、τ＝KW×8FD／(πd³)、KW＝(4C－1)／(4C－4)＋0.615／C（Wahlの係数）、C＝D／d。</p></details>
+<details><summary>軸受寿命</summary>
+<p>基本定格寿命 L10＝(C／P)^p（玉：p=3、ころ：p=10/3、単位10⁶回転）、L10h＝10⁶×L10／(60×n)。ISO 281／JIS B 1518 の基本式で、補正係数は含みません。</p></details>
+<details><summary>トルク・動力</summary>
+<p>P＝T×ω、ω＝2πn／60。</p></details>
+<details><summary>NXジャーナル</summary>
+<p>NXOpen（Python）のAPIを使っています。NXのバージョンによりAPI名が異なる場合があり、実際の動作はお使いのNX環境で確認してください。</p></details>
+
+<h3>一般公差 早見表（JIS B 0405／ISO 2768-1、切削加工の長さ寸法）</h3>
+<div class="row">
+    <div><label for="gDim">寸法 (mm)</label><input id="gDim" type="number" step="0.1" value="25"></div>
+    <div><label for="gGr">公差等級</label>
+        <select id="gGr"><option value="0">f（精級）</option><option value="1" selected>m（中級）</option><option value="2">c（粗級）</option><option value="3">v（極粗級）</option></select></div>
+</div>
+<div class="result" id="gOut" aria-live="polite"></div>
+<div class="scroll" id="gTbl"></div>
+<p class="note">表の値は規格の代表的な数値です。図面への採用前に、必ず現行のJIS B 0405で確認してください。0.5mm以下の寸法は、規格上、個別に公差を指示します。</p>
+
+<h3>計算履歴（このブラウザ内に最大30件を保存）</h3>
+<div class="btnrow noprint">
+    <button type="button" id="hCopy">全件コピー</button>
+    <button type="button" id="hClear">履歴を消去</button>
+</div>
+<div id="hList"></div>
+
+</div>
+
+<div class="panel entry" id="p-simple" role="tabpanel" aria-labelledby="t-simple">
+
+<h2>簡単公差計算</h2>
+<p class="note" style="margin-top:0">基準寸法からの偏差を入力してください。たとえば「±0.05 mm」は、上側+0.05 mm・下側−0.05 mmです。入力値はこのブラウザー内で処理されます。</p>
+
+<div class="grid3">
+    <div><label for="base">基準寸法 (mm)</label><input id="base" type="number" step="0.001" inputmode="decimal" placeholder="例：25"></div>
+    <div><label for="upper">上側許容差（mm）</label><input id="upper" type="number" step="0.001" inputmode="decimal" placeholder="例：+0.05"></div>
+    <div><label for="lower">下側許容差（mm）</label><input id="lower" type="number" step="0.001" inputmode="decimal" placeholder="例：-0.05"></div>
+</div>
+<div class="presets" aria-label="公差の入れ方の例">
+    <button type="button" data-u="0.05" data-l="-0.05">±0.05</button>
+    <button type="button" data-u="0.1" data-l="-0.1">±0.1</button>
+    <button type="button" data-u="0.2" data-l="0">+0.2 / 0</button>
+    <button type="button" data-u="0" data-l="-0.2">0 / −0.2</button>
+</div>
+
+<div class="result" id="sResult" aria-live="polite"><p>基準寸法と公差を入力してください。</p></div>
+
+<div id="sNext" class="nextbox" hidden>
+    <h3>計算した寸法を次の作業に使う</h3>
+    <p>必要な場合だけ、入力した寸法を引き継いで別の計算へ進めます。</p>
+    <button type="button" id="sToFit">ISOはめあいで確認</button>
+    <button type="button" id="sToStack">公差積み上げに追加</button>
+    <div class="nx-next">
+        <b>板の穴径として使う場合</b>
+        <p>寸法を穴径に引き継ぎ、板と穴パターンを作るNXジャーナルを生成できます。</p>
+        <button type="button" id="sToNx">NXジャーナルで板と穴を作る</button>
+    </div>
+</div>
+
+</div>
+
+<section class="guide" aria-labelledby="guide-title">
+    <h2 id="guide-title">公差計算の使い方・計算例</h2>
+    <p>寸法は mm で入力してください。上側・下側許容差は、基準寸法からの偏差を符号付きで表します。たとえば「+0.05 / −0.05」は、基準寸法より上に0.05 mm、下に0.05 mmの許容範囲を示します。</p>
+
+    <h3>寸法公差の計算例</h3>
+    <p>基準寸法 25 mm、上側許容差 +0.05 mm、下側許容差 −0.05 mm の場合、最大寸法は 25.05 mm、最小寸法は 24.95 mm、公差幅（最大寸法と最小寸法の差）は 0.10 mm です。</p>
+    <button type="button" data-tab="simple">簡単公差計算を開く</button>
+
+    <h3>ISOはめあいの計算例</h3>
+    <p>呼び寸法 φ25 mm の H7/g6 は、穴の許容差が +21/0 µm、軸の許容差が −7/−20 µm です。最大すきまは 41 µm、最小すきまは 7 µm となり、すきまばめです。計算機では公差域と判定を確認できます。</p>
+    <button type="button" data-tab="fit">ISOはめあい計算を開く</button>
+
+    <h3>累積公差（Tolerance Stackup）の計算例</h3>
+    <p>ケース内寸 10 mm（+0.3 / 0）から、厚さ 4.9 mm（0 / −0.1）の部品を2個差し引く例では、すきまの中央値は 0.45 mm です。最悪条件は ±0.25 mm、RSSによる統計的推定は約 ±0.166 mm です。</p>
+    <div class="scroll">
+        <table>
+            <caption>累積公差の比較例（mm）</caption>
+            <thead><tr><th>方法</th><th>中央値</th><th>公差幅（±）</th><th>範囲</th></tr></thead>
+            <tbody>
+                <tr><td>最悪条件</td><td>0.450</td><td>0.250</td><td>0.200〜0.700</td></tr>
+                <tr><td>RSS推定</td><td>0.450</td><td>約0.166</td><td>約0.284〜0.616</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p>RSS推定は不良率や適合を保証しません。安全側の設計判断には最悪条件を確認してください。工程能力を評価する場合は、実際の分布・相関・中心ずれも考慮します。</p>
+    <button type="button" data-tab="stack">公差積み上げ計算を開く</button>
+
+    <h2>公差計算のよくある質問</h2>
+    <details>
+        <summary>最大寸法・最小寸法はどう求めますか？</summary>
+        <p>最大寸法は「基準寸法＋上側許容差」、最小寸法は「基準寸法＋下側許容差」です。片側公差では、許容差のない側を 0 として入力します。上側許容差は下側許容差以上にしてください。</p>
+    </details>
+    <details>
+        <summary>公差と寸法許容差は何が違いますか？</summary>
+        <p>上側・下側許容差は、基準寸法から許容される偏差です。公差幅は最大寸法と最小寸法の差、すなわち「上側許容差−下側許容差」です。対称公差 ±0.05 mm の公差幅は 0.10 mm です。</p>
+    </details>
+    <details>
+        <summary>累積公差は最悪条件とRSSのどちらで確認しますか？</summary>
+        <p>最悪条件（ワーストケース）は全寸法が同時に限界値となる状態を評価します。RSSは寸法の独立性と分布を仮定した統計的な推定です。RSSは適合を保証しないため、安全や機能上の限界には最悪条件も確認してください。</p>
+    </details>
+    <details>
+        <summary>ISO公差・はめあい計算機の対応範囲は？</summary>
+        <p>この計算機は呼び寸法 3 mm 超〜500 mm、IT5〜IT11 の一部の公差域クラスに対応します。未対応の組み合わせは計算時に案内します。規格改訂や個別の設計条件を確認し、重要寸法への適用前に現行の JIS B 0401／ISO 286 の表と照合してください。</p>
+    </details>
+    <details>
+        <summary>対応している単位は何ですか？</summary>
+        <p>寸法・許容差は mm で入力してください。inch を使う場合は、入力前に mm へ換算してください。</p>
+    </details>
+    <details>
+        <summary>入力した寸法はサーバーに送信されますか？</summary>
+        <p>計算はブラウザー内で行い、寸法入力を計算サーバーへ送信しません。Web版では広告配信に広告事業者の Cookie 等が使われる場合があります。外部通信のない版が必要な場合は、このページ下部のオフライン版をご利用ください。</p>
+    </details>
+    <p class="note">計算式・自己検証・規格の根拠は「検証・根拠・履歴」タブで確認できます。規格値や統計的な見積もりは設計判断を補助するものであり、製品の適合・安全性を保証するものではありません。</p>
+</section>
+</main>
+
+<div class="adslot noprint">
+    <small>広告</small>
+    <!-- ▼ 広告タグをここに貼り付け（例：AdSenseのディスプレイ広告ユニット）。ボタンや入力欄の近くには置かないでください。
+         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+         <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="YYYYYYYYYY" data-ad-format="auto" data-full-width-responsive="true"></ins>
+         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+         ▲ -->
+</div>
+<div class="sitefoot noprint">
+    <p>入力した値は、このブラウザの中だけで処理され、サーバーには送信されません。ただし、広告の配信のため、広告事業者がCookie等を利用する場合があります。</p>
+    <p><a href="tolerance-tool-offline.html" download>オフライン版をダウンロード（広告なし・外部通信なし／単一HTMLファイル）</a><br>
+       SHA-256：<code>cb6bbdbebf21f4722b62b4c574ced855dd19470ff78da1a2281de77fa90886ac</code></p>
+    <p><a href="nx-journal-generator.html" download>NXジャーナル専用版をダウンロード（計算機・設定保存なし／単一HTMLファイル）</a><br>
+       SHA-256：<code>b2fc333df01ccc61ca7601b9a36e4bf2cc94952cff227c0356d431ae261f2941</code></p>
 </div>
 
 <script>
-function calc(){
+/* ===== タブ切り替え（URLの #nx などで直接開けます） ===== */
+(function(){
+    const tabs = Array.from(document.querySelectorAll(".tabs [data-tab]"));
+    function show(name, updateHash){
+        if(!tabs.some(t => t.dataset.tab === name)) name = "simple";
+        tabs.forEach(t => {
+            const on = t.dataset.tab === name;
+            t.setAttribute("aria-selected", on);
+            t.tabIndex = on ? 0 : -1;
+            document.getElementById("p-" + t.dataset.tab).hidden = !on;
+        });
+        if(updateHash){
+            // プレビューなど、URLを書き換えられない環境では何もしない
+            try{ history.replaceState(null, "", "#" + name); }catch(e){}
+        }
+    }
+    tabs.forEach((t, i) => {
+        t.addEventListener("click", () => show(t.dataset.tab, true));
+        t.addEventListener("keydown", e => {
+            if(e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Home" && e.key !== "End") return;
+            const index = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 :
+                (i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length;
+            const n = tabs[index];
+            n.focus(); show(n.dataset.tab, true);
+        });
+    });
+    document.querySelectorAll(".quicklinks [data-tab], .guide [data-tab]").forEach(t => {
+        t.addEventListener("click", () => show(t.dataset.tab, true));
+    });
+    window.addEventListener("hashchange", () => show(location.hash.slice(1), false));
+    show(location.hash.slice(1), false);
+})();
 
-    let base = Number(document.getElementById("base").value);
-    let upper = Number(document.getElementById("upper").value);
-    let lower = Number(document.getElementById("lower").value);
+/* ===== ISO 286 データ（単位 µm） ===== */
+// 寸法区分：3超6以下, 6-10, 10-18, 18-30, 30-50, 50-80, 80-120, 120-180, 180-250, 250-315, 315-400, 400-500
+const RANGE_MAX = [6,10,18,30,50,80,120,180,250,315,400,500];
+const IT = {
+    4:[4,4,5,6,7,8,10,12,14,16,18,20],
+    5:[5,6,8,9,11,13,15,18,20,23,25,27],
+    6:[8,9,11,13,16,19,22,25,29,32,36,40],
+    7:[12,15,18,21,25,30,35,40,46,52,57,63],
+    8:[18,22,27,33,39,46,54,63,72,81,89,97],
+    9:[30,36,43,52,62,74,87,100,115,130,140,155],
+    10:[48,58,70,84,100,120,140,160,185,210,230,250],
+    11:[75,90,110,130,160,190,220,250,290,320,360,400]
+};
+// 基礎となる位置（絶対値）。d〜g は上の寸法許容差(負)、k〜p は下の寸法許容差(正)
+const FD = {
+    d:[30,40,50,65,80,100,120,145,170,190,210,230],
+    e:[20,25,32,40,50,60,72,85,100,110,125,135],
+    f:[10,13,16,20,25,30,36,43,50,56,62,68],
+    g:[4,5,6,7,9,10,12,14,15,17,18,20],
+    k:[1,1,1,2,2,2,3,3,4,4,4,5],
+    m:[4,6,7,8,9,11,13,15,17,20,21,23],
+    n:[8,10,12,15,17,20,23,27,31,34,37,40],
+    p:[12,15,18,22,26,32,37,43,50,56,62,68]
+};
+const HOLE_LETTERS  = ["D","E","F","G","H","JS","K","M","N","P"];
+const SHAFT_LETTERS = ["d","e","f","g","h","js","k","m","n","p"];
 
-    let max = base + upper;
-    let min = base + lower;
-    let width = max - min;
-
-    document.getElementById("max").textContent = max.toFixed(3);
-    document.getElementById("min").textContent = min.toFixed(3);
-    document.getElementById("width").textContent = width.toFixed(3);
+function rangeIndex(size){
+    return RANGE_MAX.findIndex(m => size <= m);
 }
+
+// 戻り値：{es, ei}（µm）／未対応は null
+function deviation(kind, letter, grade, i){
+    const t = IT[grade][i];
+    const l = letter.toLowerCase();
+    if(kind === "shaft"){
+        if(["d","e","f","g"].includes(l)){ const es = -FD[l][i]; return {es, ei: es - t}; }
+        if(l === "h"){ return {es:0, ei:-t}; }
+        if(l === "js"){ return {es:t/2, ei:-t/2}; }
+        if(l === "k"){ const ei = (grade<=7) ? FD.k[i] : 0; return {es:ei+t, ei}; }
+        const ei = FD[l][i];               // m, n, p
+        return {es:ei+t, ei};
+    }
+    // 穴
+    if(["d","e","f","g"].includes(l)){ const ei = FD[l][i]; return {es:ei+t, ei}; }
+    if(l === "h"){ return {es:t, ei:0}; }
+    if(l === "js"){ return {es:t/2, ei:-t/2}; }
+    const delta = t - IT[grade-1][i];       // Δ = IT(n) − IT(n−1)
+    if(l === "k" || l === "m" || l === "n"){
+        if(grade > 8) return null;
+        const es = -FD[l][i] + delta;
+        return {es, ei: es - t};
+    }
+    if(l === "p"){
+        if(grade > 7) return null;
+        const es = -FD.p[i] + delta;
+        return {es, ei: es - t};
+    }
+    return null;
+}
+
+/* ===== 表示 ===== */
+const mm  = v => (Number.isInteger(v) ? (v/1000).toFixed(3) : (v/1000).toFixed(4));
+const sg  = v => (v > 0 ? "+" : "") + v;
+const sgmm = v => (v > 0 ? "+" : "") + mm(v);
+
+function fillSelects(){
+    const fill = (id, arr, sel) => {
+        const el = document.getElementById(id);
+        el.innerHTML = arr.map(x => `<option value="${x}"${x===sel?" selected":""}>${x}</option>`).join("");
+    };
+    fill("holeLetter", HOLE_LETTERS, "H");
+    fill("shaftLetter", SHAFT_LETTERS, "g");
+    const grades = [5,6,7,8,9,10,11];
+    const g = document.getElementById("holeGrade");
+    const s = document.getElementById("shaftGrade");
+    g.innerHTML = grades.map(x => `<option value="${x}"${x===7?" selected":""}>${x}</option>`).join("");
+    s.innerHTML = grades.map(x => `<option value="${x}"${x===6?" selected":""}>${x}</option>`).join("");
+}
+
+function calcFit(){
+    const box = document.getElementById("fitResult");
+    const size = Number(document.getElementById("fitSize").value);
+    if(!(size > 3 && size <= 500)){
+        box.innerHTML = '<p class="msg">呼び寸法は3mmを超え、500mm以下で入力してください。</p>';
+        return;
+    }
+    const i = rangeIndex(size);
+    const hl = document.getElementById("holeLetter").value;
+    const hg = Number(document.getElementById("holeGrade").value);
+    const sl = document.getElementById("shaftLetter").value;
+    const sgd = Number(document.getElementById("shaftGrade").value);
+
+    const H = deviation("hole", hl, hg, i);
+    const S = deviation("shaft", sl, sgd, i);
+    if(!H || !S){
+        box.innerHTML = '<p class="msg">この公差域クラスの組合せは未対応です（K・M・Nは IT5〜8、Pは IT5〜7）。</p>';
+        return;
+    }
+
+    const maxC = H.es - S.ei;   // 最大すきま
+    const minC = H.ei - S.es;   // 最小すきま
+    let cls, label, lines;
+    if(minC >= 0){
+        cls="b-clear"; label="すきまばめ";
+        lines = `<p>最小すきま：<span>${mm(minC)} mm</span>　最大すきま：<span>${mm(maxC)} mm</span></p>`;
+    }else if(maxC <= 0){
+        cls="b-inter"; label="しまりばめ";
+        lines = `<p>最小しめしろ：<span>${mm(-maxC)} mm</span>　最大しめしろ：<span>${mm(-minC)} mm</span></p>`;
+    }else{
+        cls="b-trans"; label="中間ばめ";
+        lines = `<p>最大すきま：<span>${mm(maxC)} mm</span>　最大しめしろ：<span>${mm(-minC)} mm</span></p>`;
+    }
+
+    const row = (name, d) => `<tr><td>${name}</td><td>${sg(d.es)} µm<br>${sgmm(d.es)} mm</td><td>${sg(d.ei)} µm<br>${sgmm(d.ei)} mm</td>` +
+        `<td>${(size + d.es/1000).toFixed(4)}</td><td>${(size + d.ei/1000).toFixed(4)}</td></tr>`;
+
+    box.innerHTML =
+        `<p><b>φ${size} ${hl}${hg}/${sl}${sgd}</b></p>` +
+        `<table><tr><th></th><th>上側寸法許容差</th><th>下側寸法許容差</th><th>最大寸法(mm)</th><th>最小寸法(mm)</th></tr>` +
+        row("穴 " + hl + hg, H) + row("軸 " + sl + sgd, S) + `</table>` +
+        `<span class="badge ${cls}">${label}</span>${lines}` +
+        zoneSvg(H, S) +
+        `<div class="btnrow"><button onclick="copyFit()">結果をコピー</button><button onclick="sendToNx()">穴径をNXジャーナルに反映</button><button onclick="sendToStack()">公差積み上げに追加</button></div>`;
+    lastFit = {size, hl, hg, sl, sgd, H, S};
+    box.dataset.text = `φ${size} ${hl}${hg}/${sl}${sgd}　${label}\n` +
+        `穴：${sg(H.es)}/${sg(H.ei)} µm　軸：${sg(S.es)}/${sg(S.ei)} µm\n` +
+        `最大すきま ${mm(maxC)} mm／最小すきま ${mm(minC)} mm（負の値はしめしろ）`;
+}
+
+// 公差域の概略図（0線を基準に穴と軸の公差域を並べる）
+function zoneSvg(H, S){
+    const top = Math.max(H.es, S.es, 0), bot = Math.min(H.ei, S.ei, 0);
+    const span = (top - bot) || 1, h = 140, pad = 20;
+    const y = v => pad + (top - v) / span * h;
+    const rect = (x, d, color, name) => {
+        const y1 = y(d.es), y2 = y(d.ei);
+        return `<rect x="${x}" y="${y1}" width="80" height="${Math.max(y2 - y1, 2)}" fill="${color}" opacity="0.8"/>` +
+               `<text x="${x+40}" y="${pad+h+22}" text-anchor="middle" font-size="12">${name}</text>`;
+    };
+    return `<svg id="zone" viewBox="0 0 300 ${pad*2+h+10}" role="img" aria-label="穴と軸の公差域の概略図">` +
+        `<line x1="10" x2="290" y1="${y(0)}" y2="${y(0)}" stroke="#444" stroke-dasharray="4 3"/>` +
+        `<text x="292" y="${y(0)-3}" text-anchor="end" font-size="10">基準寸法</text>` +
+        rect(60, H, "#087f8c", "穴") + rect(160, S, "#b4531a", "軸") + `</svg>`;
+}
+
+function copyFit(){
+    const t = document.getElementById("fitResult").dataset.text || "";
+    if(navigator.clipboard){ navigator.clipboard.writeText(t); }
+}
+
+document.getElementById("presets").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if(!b) return;
+    const [h, hg] = [b.dataset.h[0], b.dataset.h.slice(1)];
+    const [s, sgr] = [b.dataset.s[0], b.dataset.s.slice(1)];
+    document.getElementById("holeLetter").value = h;
+    document.getElementById("holeGrade").value = hg;
+    document.getElementById("shaftLetter").value = s;
+    document.getElementById("shaftGrade").value = sgr;
+    calcFit();
+});
+
+fillSelects();
+
+/* ===== NXジャーナル生成：板＋穴パターン ===== */
+/* NX_GENERATOR_SCRIPT_START */
+const BOLTS = {M3:[3.4,6.5,3.3], M4:[4.5,8,4.4], M5:[5.5,9.5,5.4], M6:[6.6,11,6.5], M8:[9,14,8.6], M10:[11,17.5,10.8]};
+const $ = id => document.getElementById(id);
+const num = id => Number($(id).value);
+const pyNum = v => String(+v.toFixed(4));
+
+function applyBolt(){
+    const v = BOLTS[$("jBolt").value];
+    if(!v) return;
+    unlinkFit();
+    $("jD").value = v[0]; $("jCD").value = v[1]; $("jCH").value = v[2];
+    $("jCB").checked = true;
+}
+
+function genJournal(){
+    const kind = $("jKind").value, lay = $("jLay").value, slot = kind === "slot";
+    const L = num("jL"), W = num("jW"), T = num("jT"), d = num("jD");
+    const cb = kind === "thru" && $("jCB").checked;
+    const cd = cb ? num("jCD") : 0, ch = cb ? num("jCH") : 0;
+    const td = kind === "tap" ? num("jTD") : 0, sl = slot ? num("jSL") : 0, sdir = $("jSDir").value;
+    let nx = 0, ny = 0, px = 0, py = 0, n = 0, pcd = 0, a0 = 0;
+    if(lay === "grid"){ nx = Math.round(num("jNX")); ny = Math.round(num("jNY")); px = num("jPX"); py = num("jPY"); n = nx * ny; }
+    else{ n = Math.round(num("jN")); pcd = num("jPCD"); a0 = num("jA0"); }
+    const err = [], warn = [], pts = [];
+
+    if(![L,W,T,d,cd,ch,td,sl,px,py,pcd,a0].every(Number.isFinite)) err.push("数値を入力してください。");
+    if(!(L > 0 && W > 0 && T > 0 && d > 0)) err.push("板の寸法と穴径は0より大きい値にしてください。");
+    if(!(n >= 1 && n <= 100)) err.push("穴の総数は1〜100個にしてください。");
+    if(cb){
+        if(!(cd > d)) err.push("座ぐり径は穴径より大きくしてください。");
+        if(!(ch > 0 && ch < T)) err.push("座ぐり深さは0より大きく、板厚より小さくしてください。");
+    }
+    if(kind === "tap" && !(td > 0 && td < T)) err.push("下穴深さは0より大きく、板厚より小さくしてください。");
+    if(slot){
+        if(!(sl > 0)) err.push("長穴の長さは0より大きくしてください。");
+        if(lay !== "grid") err.push("長穴は格子配置のみ対応です。");
+    }
+    // 1個あたりの外形（中心からの半寸法）
+    const r = Math.max(d, cb ? cd : 0) / 2;
+    const hx = slot ? (sdir === "X" ? sl / 2 + d / 2 : d / 2) : r;
+    const hy = slot ? (sdir === "Y" ? sl / 2 + d / 2 : d / 2) : r;
+
+    if(err.length === 0){
+        if(lay === "grid"){
+            if(nx > 1 && px < 2 * hx) err.push("X方向ピッチが穴（座ぐり・長穴）の寸法より小さく、重なります。");
+            if(ny > 1 && py < 2 * hy) err.push("Y方向ピッチが穴（座ぐり・長穴）の寸法より小さく、重なります。");
+            const ex = (L - px * (nx - 1)) / 2, ey = (W - py * (ny - 1)) / 2;
+            for(let i = 0; i < nx; i++) for(let j = 0; j < ny; j++) pts.push([ex + i * px, ey + j * py]);
+        }else{
+            const R = pcd / 2;
+            if(!(R > 0)) err.push("PCDは0より大きくしてください。");
+            else{
+                if(n > 1 && 2 * R * Math.sin(Math.PI / n) < 2 * r) err.push("円周上で隣の穴と重なります（PCDを大きくするか、個数を減らしてください）。");
+                for(let i = 0; i < n; i++){
+                    const t = (a0 + 360 * i / n) * Math.PI / 180;
+                    pts.push([L / 2 + R * Math.cos(t), W / 2 + R * Math.sin(t)]);
+                }
+            }
+        }
+    }
+    if(err.length === 0){
+        const eps = 1e-9;
+        if(pts.some(([x, y]) => x - hx < -eps || x + hx > L + eps || y - hy < -eps || y + hy > W + eps))
+            err.push("穴パターンが板からはみ出します（板を大きくするか、配置・個数を見直してください）。");
+        else{
+            const c = Math.min(...pts.map(([x, y]) => Math.min(x - hx, L - x - hx, y - hy, W - y - hy)));
+            if(c < d) warn.push(`穴の縁から板端までの距離が${c.toFixed(2)}mmで、穴径(${d}mm)未満です。強度・加工性を確認してください。`);
+        }
+    }
+
+    const box = $("jResult");
+    if(err.length){
+        box.innerHTML = err.map(e => `<p class="msg">${e}</p>`).join("");
+        $("jOut").style.display = "none";
+        return;
+    }
+
+    // 2Dプレビュー（上から見た図）
+    const s = Math.min(320 / L, 200 / W), pad = 20;
+    const svgW = L * s + pad * 2, svgH = W * s + pad * 2;
+    const X = x => pad + x * s, Y = y => pad + (W - y) * s;
+    const circ = (x, y, dia, extra) => `<circle cx="${X(x)}" cy="${Y(y)}" r="${dia * s / 2}" ${extra}/>`;
+    const feat = ([x, y]) => {
+        if(slot){
+            const w = (sdir === "X" ? sl + d : d) * s, h = (sdir === "Y" ? sl + d : d) * s;
+            return `<rect x="${X(x) - w / 2}" y="${Y(y) - h / 2}" width="${w}" height="${h}" rx="${d * s / 2}" fill="#fff" stroke="#087f8c" stroke-width="1.5"/>`;
+        }
+        return (cb ? circ(x, y, cd, 'fill="none" stroke="#b4531a" stroke-dasharray="3 2"') : "") +
+            circ(x, y, d, kind === "tap" ? 'fill="#fdebd9" stroke="#b4531a" stroke-width="1.5"' : 'fill="#fff" stroke="#087f8c" stroke-width="1.5"');
+    };
+    const pcdCircle = lay === "circle" ? `<circle cx="${X(L / 2)}" cy="${Y(W / 2)}" r="${pcd / 2 * s}" fill="none" stroke="#999" stroke-dasharray="4 3"/>` : "";
+    const svg = `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;max-width:${Math.min(svgW, 420)}px;display:block;margin:10px 0" role="img" aria-label="板と穴パターンを上から見た図">` +
+        `<rect x="${pad}" y="${pad}" width="${L * s}" height="${W * s}" fill="#e7f1f2" stroke="#087f8c" stroke-width="2"/>${pcdCircle}${pts.map(feat).join("")}` +
+        `<text x="${pad + L * s / 2}" y="${svgH - 5}" text-anchor="middle" font-size="11">${L} × ${W} × t${T} mm</text></svg>`;
+
+    const what = slot ? `長穴 <span>幅${d} × 長さ${sl}（中心間・${sdir}方向）</span>` :
+        kind === "tap" ? `ねじ下穴 <span>φ${d} 深さ${td}</span>` : `穴 <span>φ${d}</span>`;
+    const layout = lay === "grid" ? `格子 ${nx}×${ny}（ピッチ ${px}×${py} mm）` : `円周 PCD${pcd}・${n}個（開始角 ${a0}°）`;
+    box.innerHTML =
+        `<p>板 <span>${L} × ${W} × t${T} mm</span>　${what} <span>× ${pts.length}個</span>` +
+        (cb ? `　座ぐり <span>φ${cd} 深さ${ch}</span>` : "") + `</p>` +
+        `<p>配置：<span>${layout}</span></p>` +
+        (nxFit ? `<p>はめあい連携：<span>φ${nxFit.size} ${nxFit.hl}${nxFit.hg}</span>（${FITMODE[$("jFitMode").value]}で穴径 φ${d}）</p>` : "") +
+        warn.map(w => `<div class="warnbox">${w}</div>`).join("") + svg;
+
+    $("jCode").value = buildJournal({L, W, T, d, kind, pts, cd, ch, td, sl, sdir, layout,
+        fit: nxFit ? {f: nxFit, mode: $("jFitMode").value} : null});
+    $("jOut").style.display = "block";
+}
+
+function buildJournal(p){
+    const fitBlock = fitPy(p.fit);
+    const fitLog = p.fit ? `\n        lw.WriteLine("FIT phi${pyNum(p.fit.f.size)} ${p.fit.f.hl}${p.fit.f.hg}: hole modeled at %.4f mm (%s), deviation %+.4f / %+.4f mm" % (HOLE_D, FIT_MODEL_MODE, FIT_HOLE_UPPER, FIT_HOLE_LOWER))` : "";
+    const points = p.pts.map(([x, y]) => `    (${pyNum(x)}, ${pyNum(y)}),`).join("\n");
+    return `# -*- coding: utf-8 -*-
+# NX journal: plate with holes (generated by the tolerance tool)
+# Before running: open an empty part whose units are millimeters.
+import NXOpen
+
+# ===== Parameters (mm) =====
+PLATE_L = ${pyNum(p.L)}      # X length
+PLATE_W = ${pyNum(p.W)}      # Y width
+PLATE_T = ${pyNum(p.T)}      # Z thickness
+KIND = "${p.kind}"           # thru / tap (pilot hole) / slot
+HOLE_D = ${pyNum(p.d)}       # hole diameter (slot width when KIND = slot)
+CBORE_D = ${pyNum(p.cd)}     # counterbore diameter (0 = none), cut from the top face
+CBORE_DEPTH = ${pyNum(p.ch)}
+TAP_DEPTH = ${pyNum(p.td)}   # pilot hole depth from the top face (KIND = tap)
+SLOT_LEN = ${pyNum(p.sl)}    # slot length between arc centers (KIND = slot)
+SLOT_DIR = "${p.sdir}"       # slot direction: X or Y
+MARGIN = 1.0                 # tool bodies extend past the faces for a clean cut
+${fitBlock}# Layout: ${p.layout.replace(/\n/g, " ")}
+# Feature centers, plate corner is the origin
+POINTS = [
+${points}
+]
+# ===========================
+
+
+def create_plate(work):
+    builder = work.Features.CreateBlockFeatureBuilder(NXOpen.Features.Feature.Null)
+    try:
+        builder.Type = NXOpen.Features.BlockFeatureBuilder.Types.OriginAndEdgeLengths
+        builder.BooleanOption.Type = NXOpen.GeometricUtilities.BooleanOperation.BooleanType.Create
+        builder.SetOriginAndLengths(NXOpen.Point3d(0.0, 0.0, 0.0),
+                                    str(PLATE_L), str(PLATE_W), str(PLATE_T))
+        feature = builder.CommitFeature()
+        return feature.GetBodies()[0]
+    finally:
+        builder.Destroy()
+
+
+def cut_cylinder(work, body, x, y, z, dz, dia, height):
+    # cylinder (tool body) with its axis along Z, subtracted from the plate
+    builder = work.Features.CreateCylinderBuilder(NXOpen.Features.Feature.Null)
+    try:
+        origin = NXOpen.Point3d(x, y, z)
+        update = NXOpen.SmartObject.UpdateOption.WithinModeling
+        direction = work.Directions.CreateDirection(origin, NXOpen.Vector3d(0.0, 0.0, dz), update)
+        point = work.Points.CreatePoint(origin)
+        builder.Axis = work.Axes.CreateAxis(point, direction, update)
+        builder.Diameter.RightHandSide = str(dia)
+        builder.Height.RightHandSide = str(height)
+        builder.BooleanOption.Type = NXOpen.GeometricUtilities.BooleanOperation.BooleanType.Subtract
+        builder.BooleanOption.SetTargetBodies([body])
+        builder.CommitFeature()
+    finally:
+        builder.Destroy()
+
+
+def cut_block(work, body, ox, oy, oz, lx, ly, lz):
+    # box (tool body) subtracted from the plate
+    builder = work.Features.CreateBlockFeatureBuilder(NXOpen.Features.Feature.Null)
+    try:
+        builder.Type = NXOpen.Features.BlockFeatureBuilder.Types.OriginAndEdgeLengths
+        builder.BooleanOption.Type = NXOpen.GeometricUtilities.BooleanOperation.BooleanType.Subtract
+        builder.BooleanOption.SetTargetBodies([body])
+        builder.SetOriginAndLengths(NXOpen.Point3d(ox, oy, oz), str(lx), str(ly), str(lz))
+        builder.CommitFeature()
+    finally:
+        builder.Destroy()
+
+
+def cut_slot(work, body, x, y):
+    # two end cylinders + a box between them
+    half = SLOT_LEN / 2.0
+    hz = PLATE_T + 2 * MARGIN
+    if SLOT_DIR == "X":
+        ends = [(x - half, y), (x + half, y)]
+        cut_block(work, body, x - half, y - HOLE_D / 2.0, -MARGIN, SLOT_LEN, HOLE_D, hz)
+    else:
+        ends = [(x, y - half), (x, y + half)]
+        cut_block(work, body, x - HOLE_D / 2.0, y - half, -MARGIN, HOLE_D, SLOT_LEN, hz)
+    for (ex, ey) in ends:
+        cut_cylinder(work, body, ex, ey, -MARGIN, 1.0, HOLE_D, hz)
+
+
+def main():
+    session = NXOpen.Session.GetSession()
+    lw = session.ListingWindow
+    lw.Open()
+    work = session.Parts.Work
+    if work is None:
+        lw.WriteLine("ERROR: no work part. Open a new empty part (mm) first.")
+        return
+    if work.PartUnits != NXOpen.BasePart.Units.Millimeters:
+        lw.WriteLine("ERROR: part units must be millimeters.")
+        return
+    if len(work.Bodies.ToArray()) != 0:
+        lw.WriteLine("ERROR: the work part already contains bodies. No changes were made.")
+        lw.WriteLine("Open a new empty millimeter part and replay this journal there.")
+        return
+
+    mark = session.SetUndoMark(NXOpen.Session.MarkVisibility.Visible, "Plate with holes")
+    try:
+        body = create_plate(work)
+        for (x, y) in POINTS:
+            if KIND == "slot":
+                cut_slot(work, body, x, y)
+            elif KIND == "tap":
+                cut_cylinder(work, body, x, y, PLATE_T + MARGIN, -1.0, HOLE_D, TAP_DEPTH + MARGIN)
+            else:
+                cut_cylinder(work, body, x, y, -MARGIN, 1.0, HOLE_D, PLATE_T + 2 * MARGIN)
+                if CBORE_D > 0:
+                    cut_cylinder(work, body, x, y, PLATE_T + MARGIN, -1.0, CBORE_D, CBORE_DEPTH + MARGIN)
+        lw.WriteLine("OK: plate and %d features created (KIND=%s)." % (len(POINTS), KIND))${fitLog}
+        if KIND == "tap":
+            lw.WriteLine("NOTE: pilot holes only. No thread feature is created.")
+    except Exception as e:
+        lw.WriteLine("ERROR: " + str(e))
+        session.UndoToMark(mark, None)
+
+
+if __name__ == '__main__':
+    main()
+`;
+}
+
+function dlJournal(){
+    const t = $("jCode").value;
+    if(!t) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([t], {type:"text/x-python;charset=utf-8"}));
+    a.download = "plate_holes_journal.py";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function copyJournal(){
+    if(navigator.clipboard) navigator.clipboard.writeText($("jCode").value);
+}
+
+/* ===== はめあい → NXジャーナル連携 ===== */
+var lastFit = null, nxFit = null;
+const FITMODE = {mid:"公差域の中央値", max:"最大許容寸法", min:"最小許容寸法", nom:"呼び寸法"};
+function fitDia(f, mode){
+    const o = {mid:(f.H.es + f.H.ei) / 2, max:f.H.es, min:f.H.ei, nom:0}[mode];
+    return +(f.size + o / 1000).toFixed(4);
+}
+function applyFitDia(){ if(nxFit) $("jD").value = fitDia(nxFit, $("jFitMode").value); }
+function showFitBox(){
+    $("jFitBox").hidden = !nxFit;
+    if(nxFit) $("jFitText").textContent = `φ${nxFit.size} ${nxFit.hl}${nxFit.hg}（穴 ${sg(nxFit.H.es)}/${sg(nxFit.H.ei)} µm、相手軸 ${nxFit.sl}${nxFit.sgd}）`;
+}
+function unlinkFit(){ nxFit = null; showFitBox(); }
+function sendToNx(){
+    if(!lastFit) return;
+    nxFit = lastFit; $("jBolt").value = "";
+    showFitBox(); applyFitDia();
+    $("t-nx").click();
+}
+function fitPy(x){
+    if(!x) return "";
+    const f = x.f, u = v => pyNum(v / 1000);
+    return `# --- Fit (ISO 286): phi${pyNum(f.size)} ${f.hl}${f.hg} / ${f.sl}${f.sgd} ---\n` +
+        `FIT_NOMINAL = ${pyNum(f.size)}\n` +
+        `FIT_HOLE_UPPER = ${u(f.H.es)}   # hole upper deviation (mm)\n` +
+        `FIT_HOLE_LOWER = ${u(f.H.ei)}   # hole lower deviation (mm)\n` +
+        `FIT_MODEL_MODE = "${x.mode}"   # HOLE_D is modeled at: mid / max / min / nom\n`;
+}
+$("jFitMode").addEventListener("change", applyFitDia);
+$("jFitOff").addEventListener("click", unlinkFit);
+$("jD").addEventListener("input", unlinkFit);
+
+/* ===== NXパターン：UI切替・設定の保存/読込 ===== */
+const TAPD = {M3:2.5, M4:3.3, M5:4.2, M6:5, M8:6.8, M10:8.5};   // ねじ下穴径の目安（並目）
+const NXIDS = ["jL","jW","jT","jKind","jLay","jD","jTap","jTD","jSL","jSDir","jNX","jNY","jPX","jPY","jPCD","jN","jA0","jCB","jCD","jCH"];
+function updateNxUi(){
+    const k = $("jKind").value, lay = $("jLay").value;
+    $("jTapBox").hidden = k !== "tap"; $("jSlotBox").hidden = k !== "slot"; $("jCbBox").hidden = k !== "thru";
+    $("jGridBox").hidden = lay !== "grid"; $("jCircBox").hidden = lay !== "circle";
+}
+$("jKind").addEventListener("change", updateNxUi);
+$("jLay").addEventListener("change", updateNxUi);
+$("jTap").addEventListener("change", () => {
+    if(!TAPD[$("jTap").value]) return;
+    unlinkFit(); $("jD").value = TAPD[$("jTap").value];
+});
+// NX_CONFIG_IO_START
+$("jSave").addEventListener("click", () => {
+    const o = {app:"tolerance-tool-nx", v:1};
+    NXIDS.forEach(id => { o[id] = $(id).type === "checkbox" ? $(id).checked : $(id).value; });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(o, null, 2)], {type:"application/json"}));
+    a.download = "nx_settings.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    $("jMsg").textContent = "設定を保存しました。";
+});
+$("jLoad").addEventListener("click", () => $("jLoadF").click());
+$("jLoadF").addEventListener("change", e => {
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+        try{
+            const o = JSON.parse(r.result);
+            if(o.app !== "tolerance-tool-nx") throw new Error("format");
+            NXIDS.forEach(id => {
+                if(!(id in o)) return;
+                if($(id).type === "checkbox") $(id).checked = !!o[id]; else $(id).value = o[id];
+            });
+            unlinkFit(); updateNxUi();
+            $("jMsg").textContent = "設定を読み込みました（はめあい連携は解除されています）。「ジャーナルを生成」を押してください。";
+        }catch(err){ $("jMsg").textContent = "このツールで保存した設定ファイルではありません。"; }
+    };
+    r.readAsText(f); e.target.value = "";
+});
+// NX_CONFIG_IO_END
+updateNxUi();
+
+/* NX_GENERATOR_SCRIPT_END */
+/* ===== 公差積み上げ ===== */
+function addRow(v){
+    v = v || {};
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+        '<td><input class="n" type="text" aria-label="名称"></td>' +
+        '<td><input class="b" type="number" step="0.001" aria-label="寸法"></td>' +
+        '<td><input class="u" type="number" step="0.001" aria-label="上側許容差"></td>' +
+        '<td><input class="l" type="number" step="0.001" aria-label="下側許容差"></td>' +
+        '<td><select class="d" aria-label="向き"><option value="1">＋</option><option value="-1">－</option></select></td>' +
+        '<td><button class="del" type="button" aria-label="この行を削除">削除</button></td>';
+    tr.querySelector(".n").value = v.n || "";
+    tr.querySelector(".b").value = v.b ?? "";
+    tr.querySelector(".u").value = v.u ?? "";
+    tr.querySelector(".l").value = v.l ?? "";
+    tr.querySelector(".d").value = v.d || "1";
+    tr.querySelector(".del").onclick = () => tr.remove();
+    document.getElementById("stackBody").appendChild(tr);
+}
+
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function calcStack(){
+    const box = document.getElementById("stackResult");
+    const items = [];
+    for(const tr of document.querySelectorAll("#stackBody tr")){
+        const raw = ["b","u","l"].map(c => tr.querySelector("." + c).value.trim());
+        if(raw.every(x => x === "")) continue;             // 空行は無視
+        const name = tr.querySelector(".n").value.trim() || ("寸法" + (items.length + 1));
+        const b = Number(raw[0]), u = Number(raw[1] || 0), l = Number(raw[2] || 0);
+        const s = Number(tr.querySelector(".d").value);
+        if(raw[0] === "" || isNaN(b)){
+            box.innerHTML = `<p class="msg">「${esc(name)}」の寸法を入力してください。</p>`; return;
+        }
+        if(![b, u, l, s].every(Number.isFinite)){
+            box.innerHTML = `<p class="msg">「${esc(name)}」に有限の数値を入力してください。</p>`; return;
+        }
+        if(u < l){
+            box.innerHTML = `<p class="msg">「${esc(name)}」は、上側許容差が下側許容差より小さくなっています。</p>`; return;
+        }
+        items.push({name, s, b, mean: b + (u + l)/2, t: (u - l)/2});
+    }
+    if(items.length < 2){
+        box.innerHTML = '<p class="msg">寸法を2行以上入力してください。</p>'; return;
+    }
+
+    const nominal = items.reduce((a, x) => a + x.s * x.b, 0);      // 呼び寸法どうしの合成
+    const mid     = items.reduce((a, x) => a + x.s * x.mean, 0);   // 公差中央値の合成
+    const sumT    = items.reduce((a, x) => a + x.t, 0);
+    const sumT2   = items.reduce((a, x) => a + x.t * x.t, 0);
+    const wc  = sumT;
+    const rss = Math.sqrt(sumT2);
+
+    const f = v => v.toFixed(3);
+    const lowV = document.getElementById("limLow").value.trim();
+    const upV  = document.getElementById("limUp").value.trim();
+    const lo = lowV === "" ? null : Number(lowV), up = upV === "" ? null : Number(upV);
+    if((lo !== null && !Number.isFinite(lo)) || (up !== null && !Number.isFinite(up))){
+        box.innerHTML = '<p class="msg">合格範囲の上下限には有限の数値を入力してください。</p>'; return;
+    }
+    if(lo !== null && up !== null && lo > up){
+        box.innerHTML = '<p class="msg">合格範囲の下限が上限より大きくなっています。</p>'; return;
+    }
+
+    const judge = (min, max) => {
+        if(lowV === "" && upV === "") return "－";
+        const ok = (lowV === "" || min >= Number(lowV) - 1e-9) && (upV === "" || max <= Number(upV) + 1e-9);
+        return ok ? '<span class="okc">OK</span>' : '<span class="ng">NG</span>';
+    };
+
+    if(![nominal, mid, sumT, rss].every(Number.isFinite)){
+        box.innerHTML = '<p class="msg">入力値が大きすぎて計算できません。</p>'; return;
+    }
+    let pr = "", pt = "";
+    if((lo !== null || up !== null) && rss > 0){
+        const sig = rss / Number(document.getElementById("sigK").value);
+        const p = (lo !== null ? Phi((lo - mid) / sig) : 0) + (up !== null ? Phi((mid - up) / sig) : 0);
+        const cpk = Math.min(lo !== null ? mid - lo : Infinity, up !== null ? up - mid : Infinity) / (3 * sig);
+        pt = `不良率の目安：${fmtP(p)}（Cpk≒${cpk.toFixed(2)}、σ≒${f(sig)} mm、正規分布・各寸法は独立・中心は公差中央値と仮定）`;
+        pr = `<p><b>不良率の目安</b>　σ≒<span>${f(sig)} mm</span>　Cpk≒<span>${cpk.toFixed(2)}</span>　範囲外になる確率：<span>${fmtP(p)}</span></p>` +
+             `<div class="warnbox">各寸法が独立な正規分布で、中心が公差中央値、公差幅が選んだσ相当という仮定での概算です。実際の工程能力・寸法の偏りで大きく変わります。</div>`;
+    }
+    const line = (name, tol) =>
+        `<tr><td>${name}</td><td>${f(mid)}</td><td>±${f(tol)}</td><td>${f(mid + tol)}</td><td>${f(mid - tol)}</td><td>${judge(mid - tol, mid + tol)}</td></tr>`;
+
+    const contrib = items.slice().sort((a, b) => b.t - a.t).map(x =>
+        `<tr><td>${esc(x.name)}（${x.s > 0 ? "＋" : "－"}）</td><td>±${f(x.t)}</td>` +
+        `<td>${sumT ? (x.t / sumT * 100).toFixed(1) + "%" : "－"}</td>` +
+        `<td>${sumT2 ? (x.t * x.t / sumT2 * 100).toFixed(1) + "%" : "－"}</td></tr>`
+    ).join("");
+
+    box.innerHTML =
+        `<p>呼び寸法の合成値：<span>${f(nominal)} mm</span>` +
+        (Math.abs(nominal - mid) > 5e-10 ? `　公差中央値の合成値：<span>${f(mid)} mm</span>` : "") + `</p>` +
+        `<div class="scroll"><table><tr><th>方法</th><th>中央値</th><th>公差</th><th>最大</th><th>最小</th><th>判定</th></tr>` +
+        line("最悪条件（WC）", wc) + line("RSSによる統計的推定", rss) + `</table></div>` +
+        `<p><b>各寸法の寄与率</b>（寄与の大きい寸法から見直すと効果的です）</p>` +
+        `<div class="scroll"><table><tr><th>寸法</th><th>公差幅（±）</th><th>寄与率（最悪条件）</th><th>寄与率（RSS）</th></tr>${contrib}</table></div>` +
+        `<p><b>寸法チェーンの図</b>（公差中央値で連結。灰：最悪条件の幅、青緑：RSS推定の幅）</p>` + chainSvg(items, mid, wc, rss, lo, up) + pr +
+        `<div class="btnrow"><button onclick="copyStack()">結果をコピー</button></div>`;
+    box.dataset.text =
+        `累積公差（中央値 ${f(mid)} mm）\n` +
+        `最悪条件：±${f(wc)}　${f(mid - wc)}〜${f(mid + wc)} mm\n` +
+        `RSS推定：±${f(rss)}　${f(mid - rss)}〜${f(mid + rss)} mm` + (pt ? "\n" + pt : "");
+}
+
+function copyStack(){
+    const t = document.getElementById("stackResult").dataset.text || "";
+    if(navigator.clipboard){ navigator.clipboard.writeText(t); }
+}
+
+// 初期値：ケースの溝(10 +0.3/0)に、部品A(4.9 0/-0.1)を2個入れたときのすきま
+addRow({n:"ケース内寸", b:10,  u:0.3, l:0,    d:"1"});
+addRow({n:"部品A(1個目)", b:4.9, u:0,   l:-0.1, d:"-1"});
+addRow({n:"部品A(2個目)", b:4.9, u:0,   l:-0.1, d:"-1"});
+
+/* ===== 公差積み上げ：図・不良率・CSV・はめあい取り込み ===== */
+function erfc(x){   // Numerical Recipes の近似（相対誤差 1.2e-7 程度）
+    const z = Math.abs(x), t = 1 / (1 + 0.5 * z);
+    const r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 +
+        t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+    return x >= 0 ? r : 2 - r;
+}
+const Phi = z => 0.5 * erfc(-z / Math.SQRT2);
+function fmtP(p){
+    if(p < 1e-9) return "0.001 ppm未満";
+    const ppm = p * 1e6;
+    return (ppm >= 100 ? Math.round(ppm).toLocaleString() : ppm.toPrecision(2)) + " ppm（" + (p * 100 >= 0.1 ? (p * 100).toFixed(2) : (p * 100).toPrecision(2)) + "%）";
+}
+
+function chainSvg(items, mid, wc, rss, lo, up){
+    const W = 600, lx = 150, rx = W - 24, rowH = 24, top = 16;
+    let c = 0;
+    const bars = items.map(x => { const a = c; c += x.s * x.mean; return {x, a, b: c}; });
+    const vals = [0, mid - wc, mid + wc];
+    bars.forEach(r => vals.push(r.a, r.b));
+    if(lo !== null) vals.push(lo);
+    if(up !== null) vals.push(up);
+    let mn = Math.min(...vals), mx = Math.max(...vals);
+    if(mx - mn < 1e-9) mx = mn + 1;
+    const k = (rx - lx) / (mx - mn), X = v => lx + (v - mn) * k;
+    const H = top + (items.length + 1) * rowH + 30;
+    const lab = (y, t) => `<text x="${lx - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="currentColor">${esc(t.length > 14 ? t.slice(0, 13) + "…" : t)}</text>`;
+    let g = `<line x1="${X(0)}" x2="${X(0)}" y1="${top}" y2="${H - 30}" stroke="#bbb"/>`;
+    [[lo, "下限"], [up, "上限"]].forEach(([v, n]) => {
+        if(v === null) return;
+        g += `<line x1="${X(v)}" x2="${X(v)}" y1="${top}" y2="${H - 30}" stroke="#b3261e" stroke-dasharray="4 3"/>` +
+             `<text x="${X(v)}" y="${H - 16}" text-anchor="middle" font-size="10" fill="#b3261e">${n} ${v}</text>`;
+    });
+    bars.forEach((r, i) => {
+        const y = top + i * rowH + rowH / 2, x1 = X(Math.min(r.a, r.b)), w = Math.max(Math.abs(X(r.b) - X(r.a)), 2);
+        const txt = (r.x.s > 0 ? "＋" : "－") + r.x.mean.toFixed(3), tx = x1 + w + 4 > rx - 40;
+        g += lab(y, r.x.name) +
+            `<rect x="${x1}" y="${y - 6}" width="${w}" height="12" fill="${r.x.s > 0 ? "#087f8c" : "#b4531a"}" opacity="0.85"/>` +
+            `<text x="${tx ? x1 - 4 : x1 + w + 4}" y="${y + 4}" text-anchor="${tx ? "end" : "start"}" font-size="10" fill="currentColor">${txt}</text>`;
+    });
+    const y = top + items.length * rowH + rowH / 2;
+    g += lab(y, "すきま（合成）") +
+        `<line x1="${X(mid - wc)}" x2="${X(mid + wc)}" y1="${y}" y2="${y}" stroke="#888" stroke-width="4" stroke-linecap="round"/>` +
+        `<line x1="${X(mid - rss)}" x2="${X(mid + rss)}" y1="${y}" y2="${y}" stroke="#087f8c" stroke-width="9" stroke-linecap="round" opacity="0.8"/>` +
+        `<circle cx="${X(mid)}" cy="${y}" r="3.5" fill="#fff" stroke="#222"/>`;
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:640px;display:block;margin:8px 0" role="img" aria-label="寸法鎖の図">${g}</svg>`;
+}
+
+function clearRows(){ if(confirm("すべての行を削除します。よろしいですか？")) document.getElementById("stackBody").textContent = ""; }
+
+function csvCell(v){ v = String(v ?? ""); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function csvParse(t){
+    const rows = []; let r = [], c = "", q = false;
+    for(let i = 0; i < t.length; i++){
+        const ch = t[i];
+        if(q){ if(ch === '"'){ if(t[i + 1] === '"'){ c += '"'; i++; } else q = false; } else c += ch; }
+        else if(ch === '"') q = true;
+        else if(ch === ","){ r.push(c); c = ""; }
+        else if(ch === "\n" || ch === "\r"){ if(ch === "\r" && t[i + 1] === "\n") i++; r.push(c); c = ""; rows.push(r); r = []; }
+        else c += ch;
+    }
+    if(c !== "" || r.length){ r.push(c); rows.push(r); }
+    return rows.filter(x => x.some(y => y.trim() !== ""));
+}
+function saveStackCsv(){
+    const rows = [["寸法名", "寸法", "上側許容差", "下側許容差", "向き"]];
+    document.querySelectorAll("#stackBody tr").forEach(tr => {
+        const g = c => tr.querySelector("." + c).value;
+        if(!g("b").trim() && !g("u").trim() && !g("l").trim()) return;
+        rows.push([g("n"), g("b"), g("u"), g("l"), g("d") === "1" ? "+" : "-"]);
+    });
+    rows.push(["#下限", $("limLow").value], ["#上限", $("limUp").value]);
+    const txt = "\ufeff" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([txt], {type: "text/csv;charset=utf-8"}));
+    a.download = "tolerance_stack.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    $("stkMsg").textContent = "CSVを保存しました（UTF-8）。";
+}
+$("stkF").addEventListener("change", e => {
+    const f = e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+        const rows = csvParse(String(rd.result).replace(/^\ufeff/, ""));
+        const data = []; let bad = 0, lowV = null, upV = null;
+        rows.forEach((r, i) => {
+            if(r[0] === "#下限"){ lowV = (r[1] || "").trim(); return; }
+            if(r[0] === "#上限"){ upV = (r[1] || "").trim(); return; }
+            if(i === 0 && ["名称","寸法名"].includes(r[0].trim())) return;
+            const b = Number(r[1]), u = (r[2] || "").trim(), l = (r[3] || "").trim();
+            const upper = u === "" ? 0 : Number(u), lower = l === "" ? 0 : Number(l);
+            if((r[1] || "").trim() === "" || !Number.isFinite(b) ||
+                (u !== "" && !Number.isFinite(upper)) || (l !== "" && !Number.isFinite(lower)) || upper < lower){ bad++; return; }
+            data.push({n: r[0].trim(), b, u: u === "" ? "" : upper, l: l === "" ? "" : lower,
+                d: ["-", "－", "−", "-1"].includes((r[4] || "").trim()) ? "-1" : "1"});
+        });
+        const lowNum = lowV === null || lowV === "" ? null : Number(lowV);
+        const upNum = upV === null || upV === "" ? null : Number(upV);
+        if((lowNum !== null && !Number.isFinite(lowNum)) || (upNum !== null && !Number.isFinite(upNum)) ||
+            (lowNum !== null && upNum !== null && lowNum > upNum)){
+            $("stkMsg").textContent = "CSVの合格範囲が不正です（上下限は有限の数値で、下限は上限以下にしてください）。";
+            return;
+        }
+        if(!data.length){ $("stkMsg").textContent = "読み込める行がありませんでした（列：寸法名,寸法,上側許容差,下側許容差,向き）。"; return; }
+        document.getElementById("stackBody").textContent = "";
+        data.forEach(addRow);
+        if(lowV !== null) $("limLow").value = lowV;
+        if(upV !== null) $("limUp").value = upV;
+        $("stkMsg").textContent = data.length + "行を読み込みました" + (bad ? `（数値が不正な${bad}行は除外しました）` : "") + "。";
+    };
+    rd.readAsText(f, "utf-8"); e.target.value = "";
+});
+
+// はめあい計算の結果（穴＝＋、軸＝－）を寸法鎖に追加：すきま＝穴−軸
+function sendToStack(){
+    if(!lastFit) return;
+    const f = lastFit, u = v => +(v / 1000).toFixed(4);
+    addRow({n: "穴 " + f.hl + f.hg, b: f.size, u: u(f.H.es), l: u(f.H.ei), d: "1"});
+    addRow({n: "軸 " + f.sl + f.sgd, b: f.size, u: u(f.S.es), l: u(f.S.ei), d: "-1"});
+    $("stkMsg").textContent = `φ${f.size} ${f.hl}${f.hg}/${f.sl}${f.sgd} の穴・軸を2行追加しました（すきま＝穴－軸）。不要な行は削除してください。`;
+    $("t-stack").click();
+}
+
+/* ===== 機構設計の基本計算 ===== */
+const BD = {M3:[3,5.03], M4:[4,8.78], M5:[5,14.2], M6:[6,20.1], M8:[8,36.6], M10:[10,58.0], M12:[12,84.3], M14:[14,115], M16:[16,157], M20:[20,245]};  // [呼び径mm, 有効断面積mm²]
+const BC = {"4.6":240, "8.8":640, "10.9":940, "12.9":1100};   // 耐力 N/mm²
+const gf = (v, dg) => v.toLocaleString("ja-JP", {maximumFractionDigits: dg === undefined ? 1 : dg});
+const tbl = rows => `<div class="scroll"><table>${rows.map(r => `<tr><td>${r[0]}</td><td><b>${r[1]}</b></td></tr>`).join("")}</table></div>`;
+const cpBtn = id => `<button onclick="copyE('${id}')">結果をコピー</button>`;
+function copyE(id){ if(navigator.clipboard) navigator.clipboard.writeText(document.getElementById(id).dataset.text || ""); }
+
+function boltCalc(a){   // a: {name, cls, u, K, n, SF, mu}
+    const [d, As] = BD[a.name], sy = BC[a.cls];
+    const F = a.u * sy * As;
+    return {d, As, sy, F, T: a.K * d * F / 1000, Ft: sy * As / a.SF, Fs: 0.6 * sy * As / a.SF, Fslip: a.mu * F * a.n};
+}
+function calcBolt(){
+    const a = {name: $("eBd").value, cls: $("eBc").value, u: num("eBu"), K: num("eBk"), n: num("eBn"), SF: num("eBs"), mu: num("eBmu")};
+    const box = $("eBoltR");
+    if(![a.u, a.K, a.n, a.SF, a.mu].every(Number.isFinite) ||
+        !(Number.isInteger(a.n) && a.n >= 1 && a.SF > 0 && a.mu >= 0)){
+        box.innerHTML = '<p class="msg">本数は1以上の整数、安全率は0より大きい値、摩擦係数は0以上で入力してください。</p>'; return;
+    }
+    const r = boltCalc(a), kN = v => gf(v / 1000, 2);
+    if(![r.F, r.T, r.Ft, r.Fs, r.Fslip].every(Number.isFinite)){
+        box.innerHTML = '<p class="msg">入力値が大きすぎて計算できません。</p>'; return;
+    }
+    box.innerHTML = tbl([
+        ["有効断面積 As", gf(r.As, 1) + " mm²"], ["耐力 σy（" + a.cls + "）", gf(r.sy, 0) + " N/mm²"],
+        ["目標軸力 F（耐力の" + gf(a.u * 100, 0) + "%）", kN(r.F) + " kN"],
+        ["締付けトルク T = K・d・F", gf(r.T, 1) + " N·m"],
+        ["許容引張荷重（1本、安全率" + a.SF + "）", kN(r.Ft) + " kN"],
+        ["許容せん断荷重（1本・ねじ部、0.6σy）", kN(r.Fs) + " kN"],
+        ["摩擦で伝えられる横荷重（" + a.n + "本合計、接触面1面）", kN(r.Fslip) + " kN"]
+    ]) + '<div class="warnbox">トルク管理の軸力は±25%以上ばらつくことがあります。振動・繰返し荷重・薄板・ざぐり面の沈みなどは別途検討してください。</div>' + cpBtn("eBoltR");
+    box.dataset.text = `${a.name} ${a.cls} ×${a.n}本　K=${a.K}\n目標軸力 ${kN(r.F)} kN（耐力の${gf(a.u * 100, 0)}%）／締付けトルク ${gf(r.T, 1)} N·m\n許容引張 ${kN(r.Ft)} kN／許容せん断 ${kN(r.Fs)} kN（1本）／摩擦横荷重 ${kN(r.Fslip)} kN（μ=${a.mu}）`;
+}
+
+function springCalc(d, D, n, x, G){
+    const C = D / d, k = G * Math.pow(d, 4) / (8 * Math.pow(D, 3) * n), F = k * x;
+    const KW = (4 * C - 1) / (4 * C - 4) + 0.615 / C;           // Wahl の応力修正係数
+    return {C, k, F, KW, tau: KW * 8 * F * D / (Math.PI * d * d * d)};
+}
+function calcSpring(){
+    const d = num("eSd"), D = num("eSD"), n = num("eSn"), x = num("eSx"), G = num("eSg"), box = $("eSpringR");
+    if(![d, D, n, x, G].every(Number.isFinite) || !(d > 0 && D > d && n > 0 && x >= 0 && G > 0)){
+        box.innerHTML = '<p class="msg">線径＞0、コイル平均径＞線径、巻数＞0、たわみ≧0 で入力してください。</p>'; return;
+    }
+    const r = springCalc(d, D, n, x, G);
+    if(![r.C, r.k, r.F, r.KW, r.tau].every(Number.isFinite)){
+        box.innerHTML = '<p class="msg">入力値が大きすぎて計算できません。</p>'; return;
+    }
+    box.innerHTML = tbl([
+        ["ばね指数 C = D/d", gf(r.C, 2)], ["ばね定数 k", gf(r.k, 3) + " N/mm"],
+        ["荷重 F（たわみ " + x + " mm）", gf(r.F, 2) + " N"],
+        ["応力修正係数 KW（Wahl）", gf(r.KW, 3)], ["せん断応力 τ", gf(r.tau, 0) + " N/mm²"]
+    ]) + (r.C < 4 || r.C > 15 ? '<div class="warnbox">ばね指数 C が一般的な範囲（4〜15程度）から外れています。製作性・応力集中を確認してください。</div>' : "") +
+        '<div class="warnbox">τ は許容応力と比較してください（線材・熱処理・使用条件で異なります）。座屈・密着高さ・自由長は別途確認が必要です。</div>' + cpBtn("eSpringR");
+    box.dataset.text = `圧縮コイルばね d=${d} D=${D} n=${n}（G=${G / 1000} GPa）\nk=${gf(r.k, 3)} N/mm／F=${gf(r.F, 2)} N（δ=${x} mm）／τ=${gf(r.tau, 0)} N/mm²（C=${gf(r.C, 2)}）`;
+}
+
+function brgCalc(C, P, n, p){ const L10 = Math.pow(C / P, p); return {L10, Lh: L10 * 1e6 / (60 * n)}; }
+function calcBrg(){
+    const C = num("eLc"), P = num("eLp"), n = num("eLn"), p = num("eLt"), box = $("eBrgR");
+    if(![C, P, n, p].every(Number.isFinite) || !(C > 0 && P > 0 && n > 0)){
+        box.innerHTML = '<p class="msg">C・P・回転数は有限の0より大きい値にしてください。</p>'; return;
+    }
+    const r = brgCalc(C, P, n, p);
+    if(![r.L10, r.Lh].every(Number.isFinite)){
+        box.innerHTML = '<p class="msg">入力値が大きすぎて計算できません。</p>'; return;
+    }
+    box.innerHTML = tbl([["基本定格寿命 L10", gf(r.L10, 1) + " ×10⁶ 回転"], ["寿命時間 L10h", gf(r.Lh, 0) + " 時間（約" + gf(r.Lh / 8760, 1) + " 年・連続運転）"], ["P/C", gf(P / C, 2)]]) +
+        (P / C > 0.5 ? '<div class="warnbox">P/C が0.5を超えています。この式の適用範囲外になることがあるため、メーカーの計算法で確認してください。</div>' : "") +
+        '<div class="warnbox">信頼度90%の基本定格寿命です。潤滑・温度・信頼度の補正は含みません。</div>' + cpBtn("eBrgR");
+    box.dataset.text = `軸受寿命 C=${C} kN, P=${P} kN, n=${n} rpm\nL10=${gf(r.L10, 1)} ×10⁶回転／L10h=${gf(r.Lh, 0)} 時間`;
+}
+
+function calcPw(){
+    const n = num("ePn"), pS = $("ePp").value.trim(), tS = $("ePt").value.trim(), box = $("ePwR");
+    const pIn = pS === "" ? 0 : Number(pS), tIn = tS === "" ? 0 : Number(tS);
+    if(!Number.isFinite(n) || !(n > 0) || (pS === "" && tS === "") ||
+        !Number.isFinite(pIn) || !Number.isFinite(tIn)){
+        box.innerHTML = '<p class="msg">回転数と、動力またはトルクのどちらかを入力してください。</p>'; return;
+    }
+    const w = 2 * Math.PI * n / 60;                                  // rad/s
+    const T = tS !== "" ? tIn : pIn * 1000 / w;
+    const P = T * w / 1000;
+    if(![w, T, P].every(Number.isFinite)){
+        box.innerHTML = '<p class="msg">入力値が大きすぎて計算できません。</p>'; return;
+    }
+    box.innerHTML = tbl([["回転数", gf(n, 0) + " rpm（" + gf(w, 2) + " rad/s）"], ["トルク T", gf(T, 3) + " N·m"], ["動力 P", gf(P, 3) + " kW"]]) + cpBtn("ePwR");
+    box.dataset.text = `n=${n} rpm／T=${gf(T, 3)} N·m／P=${gf(P, 3)} kW`;
+}
+
+$("eSel").addEventListener("change", () => ["bolt", "spring", "brg", "pw"].forEach(k => { $("e-" + k).hidden = k !== $("eSel").value; }));
+
+/* ===== 信頼性：自己検証・一般公差・履歴 ===== */
+function selfTestCases(){
+    const dv = (k, l, g, size, f) => deviation(k, l, g, rangeIndex(size))[f];
+    const B = boltCalc({name:"M8", cls:"8.8", u:0.7, K:0.2, n:4, SF:2, mu:0.15});
+    const TB = "JIS B 0401-2（ISO 286-2）の表", HC = "手計算";
+    return [
+        ["φ25 H7 上の許容差", "µm", dv("hole","H",7,25,"es"), 21, 0, TB],
+        ["φ25 H7 下の許容差", "µm", dv("hole","H",7,25,"ei"), 0, 0, TB],
+        ["φ25 g6 上の許容差", "µm", dv("shaft","g",6,25,"es"), -7, 0, TB],
+        ["φ25 g6 下の許容差", "µm", dv("shaft","g",6,25,"ei"), -20, 0, TB],
+        ["φ25 k6 上／下の許容差", "µm", dv("shaft","k",6,25,"es") + "/" + dv("shaft","k",6,25,"ei"), "15/2", 0, TB],
+        ["φ25 p6 上／下の許容差", "µm", dv("shaft","p",6,25,"es") + "/" + dv("shaft","p",6,25,"ei"), "35/22", 0, TB],
+        ["φ20 n6 上／下の許容差", "µm", dv("shaft","n",6,20,"es") + "/" + dv("shaft","n",6,20,"ei"), "28/15", 0, TB],
+        ["φ50 H8 上の許容差", "µm", dv("hole","H",8,50,"es"), 39, 0, TB],
+        ["φ50 f7 上／下の許容差", "µm", dv("shaft","f",7,50,"es") + "/" + dv("shaft","f",7,50,"ei"), "-25/-50", 0, TB],
+        ["φ100 H7 上の許容差", "µm", dv("hole","H",7,100,"es"), 35, 0, TB],
+        ["φ100 h6 下の許容差", "µm", dv("shaft","h",6,100,"ei"), -22, 0, TB],
+        ["ボルト M8・8.8 軸力（耐力70%）", "N", B.F, 16396.8, 0.1, HC + "：0.7×640×36.6"],
+        ["ボルト M8・8.8 締付けトルク（K=0.2）", "N·m", B.T, 26.23488, 0.001, HC + "：0.2×8×F"],
+        ["ばね定数 d2・D16・n8・G78.5GPa", "N/mm", springCalc(2,16,8,5,78500).k, 4.79126, 0.0001, HC + "：Gd⁴/(8D³n)"],
+        ["ばね応力修正係数 KW（C=8）", "", springCalc(2,16,8,5,78500).KW, 1.18393, 0.0001, HC + "：31/28＋0.615/8"],
+        ["軸受 L10（C=12.7kN, P=3kN, 玉）", "10⁶rev", brgCalc(12.7,3,1500,3).L10, 75.866, 0.01, HC + "：(12.7/3)³"],
+        ["軸受 L10h（1500rpm）", "h", brgCalc(12.7,3,1500,3).Lh, 842.96, 0.1, HC + "：L10×10⁶/(60×1500)"],
+        ["正規分布 Φ(−3)", "", Phi(-3), 0.0013499, 1e-6, "標準正規分布表"],
+        ["正規分布 Φ(−1.96)", "", Phi(-1.96), 0.0249979, 1e-6, "標準正規分布表"]
+    ];
+}
+function runSelfTest(){
+    let ok = 0;
+    const rows = selfTestCases().map(c => {
+        const [name, unit, got, exp, tol, src] = c;
+        const pass = typeof exp === "string" ? String(got) === exp : Math.abs(got - exp) <= tol;
+        if(pass) ok++;
+        const fmt = v => typeof v === "number" ? +v.toPrecision(7) : v;
+        return `<tr><td>${name}</td><td>${fmt(got)} ${unit}</td><td>${fmt(exp)} ${unit}</td><td>${pass ? '<span class="okc">OK</span>' : '<span class="ng">NG</span>'}</td><td>${src}</td></tr>`;
+    });
+    $("vOut").innerHTML = `<p><span>${ok} / ${rows.length}</span> 件が一致しました。</p>` +
+        `<div class="scroll"><table><tr><th>項目</th><th>計算値</th><th>期待値</th><th>判定</th><th>出典</th></tr>${rows.join("")}</table></div>`;
+}
+$("vRun").addEventListener("click", runSelfTest);
+
+// 一般公差（長さ寸法）：[上限mm, [f, m, c, v]]  nullは規定なし
+const GT = [[3,[0.05,0.1,0.2,null]], [6,[0.05,0.1,0.3,0.5]], [30,[0.1,0.2,0.5,1]], [120,[0.15,0.3,0.8,1.5]],
+    [400,[0.2,0.5,1.2,2.5]], [1000,[0.3,0.8,2,4]], [2000,[0.5,1.2,3,6]], [4000,[null,2,4,8]]];
+const GN = ["f（精級）", "m（中級）", "c（粗級）", "v（極粗級）"];
+function genTol(dim, gr){
+    if(!(dim > 0.5 && dim <= 4000)) return null;
+    return GT.find(r => dim <= r[0])[1][gr];
+}
+function lookupGen(){
+    const dim = num("gDim"), gr = Number($("gGr").value), v = genTol(dim, gr), box = $("gOut");
+    box.innerHTML = !(dim > 0) ? '<p class="msg">寸法を入力してください。</p>' :
+        dim <= 0.5 ? '<p class="msg">0.5mm以下は、規格上、個別に公差を指示します。</p>' :
+        dim > 4000 ? '<p class="msg">4000mmを超える寸法は規格の対象外です。</p>' :
+        v === null ? '<p class="msg">この等級は、この寸法区分には規定がありません。</p>' :
+        `<p>φ・長さ <span>${dim} mm</span>　等級 <span>${GN[gr]}</span>　許容差 <span>±${v} mm</span></p>`;
+}
+(function(){
+    const lows = [0.5].concat(GT.map(r => r[0]));
+    const head = `<tr><th>寸法の区分 (mm)</th>${GN.map(n => `<th>${n}</th>`).join("")}</tr>`;
+    const body = GT.map((r, i) => `<tr><td>${lows[i]}を超え${r[0]}以下</td>${r[1].map(v => `<td>${v === null ? "－" : "±" + v}</td>`).join("")}</tr>`).join("");
+    const ch = [["0.5を超え3以下", "±0.2", "±0.4"], ["3を超え6以下", "±0.5", "±1"], ["6を超えるもの", "±1", "±2"]]
+        .map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+    $("gTbl").innerHTML = `<table>${head}${body}</table><p><b>面取り部分・丸み（R）の長さ寸法</b></p>` +
+        `<table><tr><th>寸法の区分 (mm)</th><th>f・m</th><th>c・v</th></tr>${ch}</table>`;
+    $("gDim").addEventListener("input", lookupGen); $("gGr").addEventListener("change", lookupGen);
+    lookupGen();
+})();
+
+// 計算履歴：各計算を実行するたびに、結果のテキストを保存する
+const HKEY = "calcHistory.v1";
+let HIST = [];
+try{ HIST = JSON.parse(localStorage.getItem(HKEY) || "[]"); }catch(e){}
+if(!Array.isArray(HIST)) HIST = [];
+function addHist(kind, text){
+    HIST = HIST.filter(h => !(h.k === kind && h.t === text));
+    HIST.unshift({k: kind, t: text, d: Date.now()});
+    HIST = HIST.slice(0, 30);
+    try{ localStorage.setItem(HKEY, JSON.stringify(HIST)); }catch(e){}
+    renderHist();
+}
+function renderHist(){
+    const box = $("hList"); box.textContent = "";
+    if(!HIST.length){ const p = document.createElement("p"); p.className = "note"; p.textContent = "履歴はまだありません。各タブで計算すると、ここに残ります。"; box.appendChild(p); return; }
+    HIST.forEach(h => {
+        const w = document.createElement("div"); w.className = "hrow";
+        const b = document.createElement("b"); b.textContent = new Date(h.d).toLocaleString("ja-JP") + "　" + h.k;
+        const pre = document.createElement("pre"); pre.textContent = h.t;
+        const c = document.createElement("button"); c.type = "button"; c.className = "noprint"; c.textContent = "コピー";
+        c.addEventListener("click", () => { if(navigator.clipboard) navigator.clipboard.writeText(h.t); });
+        w.append(b, pre, c); box.appendChild(w);
+    });
+}
+$("hCopy").addEventListener("click", () => {
+    if(navigator.clipboard) navigator.clipboard.writeText(HIST.map(h => "■" + h.k + "\n" + h.t).join("\n\n"));
+});
+$("hClear").addEventListener("click", () => {
+    if(!confirm("計算履歴をすべて消去します。よろしいですか？")) return;
+    HIST = []; try{ localStorage.removeItem(HKEY); }catch(e){} renderHist();
+});
+const HMAP = {calcFit:["fitResult","ISOはめあい"], calcStack:["stackResult","公差積み上げ"], calcBolt:["eBoltR","ボルト締結"],
+    calcSpring:["eSpringR","圧縮コイルばね"], calcBrg:["eBrgR","軸受寿命"], calcPw:["ePwR","トルク・動力"]};
+Object.keys(HMAP).forEach(fn => {
+    const orig = window[fn], id = HMAP[fn][0], kind = HMAP[fn][1];
+    window[fn] = function(){
+        $(id).dataset.text = "";                       // エラー時に古い結果を記録しないため
+        const r = orig.apply(this, arguments);
+        if($(id).dataset.text) addHist(kind, $(id).dataset.text);
+        return r;
+    };
+});
+renderHist();
+
+/* ===== かんたん公差計算（入口） ===== */
+(function(){
+    let cur = null;
+    const f3 = v => v.toFixed(3);
+    const sg3 = v => (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toFixed(3);
+    const num = id => { const v = $(id).value.trim(); return v === "" ? NaN : Number(v); };
+
+    function update(){
+        const base = num("base"), up = num("upper"), lo = num("lower");
+        const box = $("sResult"), next = $("sNext");
+        cur = null; next.hidden = true;
+        if(!Number.isFinite(base) || !Number.isFinite(up) || !Number.isFinite(lo)){
+            box.innerHTML = "<p>基準寸法と公差を入力してください。</p>"; return;
+        }
+        if(up < lo){
+            box.innerHTML = '<p class="msg">上側許容差が下側許容差より小さくなっています。値を確認してください。</p>'; return;
+        }
+        const max = base + up, min = base + lo, mid = (max + min) / 2, w = max - min;
+        cur = {base, up, lo, max, min, mid, w};
+        const txt = `基準寸法 ${f3(base)} mm（${sg3(up)} / ${sg3(lo)}）→ 最大 ${f3(max)} ／ 最小 ${f3(min)} ／ 公差幅 ${f3(w)} mm`;
+        box.dataset.text = txt;
+        box.innerHTML =
+            `<div class="tbl3"><div><small>最大寸法</small><b>${f3(max)}</b> mm</div>` +
+            `<div><small>最小寸法</small><b>${f3(min)}</b> mm</div>` +
+            `<div><small>公差幅</small><b>${f3(w)}</b> mm</div></div>` +
+            `<p style="margin:10px 0 0">中央値：<b>${f3(mid)}</b> mm　（${sg3(up)} / ${sg3(lo)}）</p>` +
+            `<button type="button" id="sCopy">結果をコピー</button> <span id="sCopyMsg" class="note" aria-live="polite"></span>`;
+        $("sCopy").onclick = () => {
+            if(navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("sCopyMsg").textContent = "コピーしました。"; addHist("かんたん公差計算", txt); });
+        };
+        next.hidden = false;
+    }
+
+    ["base","upper","lower"].forEach(id => $(id).addEventListener("input", update));
+    document.querySelectorAll("#p-simple .presets button").forEach(b => b.addEventListener("click", () => {
+        $("upper").value = b.dataset.u; $("lower").value = b.dataset.l; update();
+    }));
+
+    $("sToFit").addEventListener("click", () => {
+        if(!cur) return;
+        if(cur.base > 3 && cur.base <= 500) $("fitSize").value = cur.base;
+        $("t-fit").click();
+    });
+    $("sToStack").addEventListener("click", () => {
+        if(!cur) return;
+        addRow({n: "寸法", b: cur.base, u: cur.up, l: cur.lo, d: "1"});
+        $("stkMsg").textContent = "かんたん公差計算の寸法を1行追加しました。向き（＋／－）を確認してください。";
+        $("t-stack").click();
+    });
+    $("sToNx").addEventListener("click", () => {
+        if(!cur) return;
+        unlinkFit(); $("jBolt").value = ""; $("jD").value = +cur.mid.toFixed(4);
+        $("t-nx").click();
+    });
+})();
+
+/* ===== 検図チェックリスト ===== */
+(function(){
+    const G = {
+        common:{t:"共通（全図面）", i:[
+            "図番・品名・材質・数量・尺度・投影法が表題欄に記入されている",
+            "版数・変更履歴・承認欄（設計／検図／承認）が記入されている",
+            "寸法に過不足・重複がなく、加工・検査に必要な寸法が全て入っている",
+            "一般公差（JIS B 0405 など）の等級が指定されている",
+            "はめあい・位置決めなど、公差が必要な箇所に記入漏れがない",
+            "表面粗さ・表面処理・熱処理などの指示が記入されている",
+            "投影図・断面図が適切で、図面として読み取りやすい",
+            "注記（バリ取り、鋭角面取りなど）が社内標準と一致している"]},
+        part:{t:"切削部品図", i:[
+            "基準面（データム）が明確で、寸法が加工基準から記入されている",
+            "はめあいの穴・軸の組合せが成立し、公差域クラスが正しい",
+            "穴・ねじの呼び、深さ、有効ねじ長さ、下穴深さが記入されている",
+            "面取り・隅R・ねじ逃がしなど、加工に必要な指示に漏れがない",
+            "内側の隅Rなど、工具で加工できる形状になっている",
+            "幾何公差を使う場合、データムと公差値の指示が正しい",
+            "材質に対する熱処理・硬度・表面処理の指示が妥当である",
+            "相手部品との取り合い寸法が組立図・相手図と一致している"]},
+        sheet:{t:"板金部品図", i:[
+            "板厚・材質・表面処理が記入されている",
+            "曲げ内R・曲げ方向・曲げ角度が指示されている",
+            "曲げ線から穴・端面までの距離が、板厚に対して十分ある",
+            "展開寸法または展開図が記入されている",
+            "穴径・長穴の寸法が、板厚に対して加工可能である",
+            "バリ方向・かえり・ダレの指示が必要な箇所に記入されている",
+            "溶接・タップ・バーリングなどの指示が記入されている",
+            "ボルト座面・相手部品との取り合いが組立図と一致している"]},
+        asm:{t:"組立図", i:[
+            "部品番号が全部品に付き、部品表（品番・品名・数量）と一致している",
+            "締結ボルトの呼び・長さ・本数・座金が適切で、ねじ込み長さが足りている",
+            "位置決め（ピン・インロー）があり、組立の基準が明確である",
+            "隙間・干渉がなく、可動部の動作範囲が確認できている",
+            "調整代・組立手順・工具が入るスペースが確保されている",
+            "はめあい・しゅう動部の公差、潤滑、シールの指示がある",
+            "全体寸法・取付寸法・中心距離などの主要寸法が記入されている",
+            "購入品の型式・メーカー、使用環境（防錆・耐熱）の指示がある"]}
+    };
+    const KEY = "kenzuChecklist.v1";
+    let S = {type:"part", name:"", memo:"", chk:{}, custom:[]};
+    try{ const r = localStorage.getItem(KEY); if(r) S = Object.assign(S, JSON.parse(r)); }catch(e){}
+    if(!G[S.type]) S.type = "part";
+    const $ = id => document.getElementById(id);
+    const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+    let cur = [];
+
+    function progress(){
+        const d = cur.filter(it => S.chk[it.id]).length, n = cur.length;
+        $("ckSum").textContent = d + " / " + n + " 項目を確認済み（" + (n ? Math.round(d / n * 100) : 0) + "%）";
+        $("ckBar").value = n ? d / n * 100 : 0;
+    }
+    function render(){
+        const box = $("ckList"); box.textContent = ""; cur = [];
+        function group(title, items, isCustom){
+            if(!items.length) return;
+            const h = document.createElement("h3"); h.textContent = title; box.appendChild(h);
+            items.forEach(it => {
+                cur.push(it);
+                const row = document.createElement("div"); row.className = "ckrow";
+                const lb = document.createElement("label");
+                const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!S.chk[it.id];
+                const sp = document.createElement("span"); sp.textContent = it.t;
+                lb.classList.toggle("done", cb.checked);
+                cb.addEventListener("change", () => {
+                    if(cb.checked) S.chk[it.id] = 1; else delete S.chk[it.id];
+                    lb.classList.toggle("done", cb.checked); save(); progress();
+                });
+                lb.append(cb, sp); row.appendChild(lb);
+                if(isCustom){
+                    const x = document.createElement("button"); x.type = "button"; x.className = "del";
+                    x.textContent = "削除"; x.setAttribute("aria-label", "「" + it.t + "」を削除");
+                    x.addEventListener("click", () => {
+                        S.custom = S.custom.filter(c => c.id !== it.id); delete S.chk[it.id]; save(); render();
+                    });
+                    row.appendChild(x);
+                }
+                box.appendChild(row);
+            });
+        }
+        const mk = (pre, g) => g.i.map((t, k) => ({id: pre + k, t: t}));
+        group(G.common.t, mk("c", G.common), false);
+        group(G[S.type].t, mk(S.type, G[S.type]), false);
+        group("追加項目", S.custom, true);
+        progress();
+    }
+    function say(m){ $("ckMsg").textContent = m; }
+
+    $("ckType").value = S.type; $("ckName").value = S.name; $("ckMemo").value = S.memo;
+    $("ckType").addEventListener("change", e => { S.type = e.target.value; save(); render(); });
+    $("ckName").addEventListener("input", e => { S.name = e.target.value; save(); });
+    $("ckMemo").addEventListener("input", e => { S.memo = e.target.value; save(); });
+    function addItem(){
+        const v = $("ckNew").value.trim(); if(!v) return;
+        S.custom.push({id: "u" + Date.now(), t: v}); $("ckNew").value = ""; save(); render();
+    }
+    $("ckAdd").addEventListener("click", addItem);
+    $("ckNew").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); addItem(); } });
+    $("ckReset").addEventListener("click", () => {
+        if(!confirm("チェック状態をすべて解除します。よろしいですか？")) return;
+        S.chk = {}; save(); render(); say("チェックを解除しました。");
+    });
+    $("ckPrint").addEventListener("click", () => window.print());
+    $("ckCopy").addEventListener("click", () => {
+        const open = cur.filter(it => !S.chk[it.id]).map(it => "・" + it.t);
+        const d = cur.length - open.length;
+        const txt = ["【検図結果】" + (S.name || "（図番未入力）") + "／" + G[S.type].t,
+            "確認済み " + d + " / " + cur.length + " 項目",
+            open.length ? "\n■未確認\n" + open.join("\n") : "\n未確認項目はありません。",
+            S.memo.trim() ? "\n■指摘メモ\n" + S.memo.trim() : ""].join("\n");
+        if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(txt).then(() => say("結果をコピーしました。"), () => say("コピーできませんでした。"));
+        }else say("このブラウザではコピーできません。");
+    });
+    render();
+})();
 </script>
 
 </body>
