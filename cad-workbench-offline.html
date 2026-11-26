@@ -1,0 +1,1568 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101b2a">
+<meta name="description" content="形状をつくり、メッシュを検査し、材料と荷重から強度を一次評価。ブラウザー内で完結する機械設計ワークベンチです。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="NX Automation Labs">
+<meta property="og:title" content="NX Automation Labs — 設計・検査・強度評価">
+<meta property="og:description" content="CADから形状QA、強度の一次評価まで。モデルはアップロードせずブラウザー内で処理します。">
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; base-uri 'none'; form-action 'none'">
+
+<title>NX Automation Labs — 設計・検査・強度評価</title>
+<style>
+:root{
+    color-scheme:light;
+    --ink:#142238;
+    --muted:#66768b;
+    --line:#dce4ed;
+    --paper:#f4f7fb;
+    --white:#fff;
+    --navy:#101b2a;
+    --blue:#3977e5;
+    --cyan:#56d4c2;
+    --green:#23774f;
+    --amber:#a05d09;
+    --red:#ae3d3d;
+    font-family:Inter,"Segoe UI","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:82px}
+body{margin:0;color:var(--ink);background:var(--paper);line-height:1.55}
+a{color:inherit}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #7fa8ff;outline-offset:3px}
+.wrap{width:min(1180px,calc(100% - 40px));margin:0 auto}
+.skip{position:absolute;left:-10000px;top:10px;z-index:20;padding:10px;background:#fff}
+.skip:focus{left:10px}
+.site-header{position:sticky;top:0;z-index:10;background:rgba(16,27,42,.96);color:#eaf1fa;border-bottom:1px solid rgba(255,255,255,.1);backdrop-filter:blur(16px)}
+.header-inner{height:68px;display:flex;align-items:center;justify-content:space-between;gap:22px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.brand-mark{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;color:#0c1a28;background:linear-gradient(140deg,#71e6cf,#67a9ff);font-size:13px}
+.top-nav{display:flex;align-items:center;gap:24px}
+.top-nav a{font-size:12px;color:#b9c9dc;text-decoration:none}
+.top-nav a:hover{color:#fff}
+.nav-cta,.button-primary{border:0;border-radius:10px;background:var(--blue);color:#fff;font-weight:750;text-decoration:none}
+.nav-cta{padding:9px 14px;font-size:12px}
+.hero{overflow:hidden;background:radial-gradient(ellipse at 75% 36%,rgba(64,122,191,.3),transparent 36%),linear-gradient(125deg,#101b2a 0%,#15253b 62%,#162d43 100%);color:#f3f7fc}
+.hero-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:36px;align-items:center;padding:66px 0 70px}
+.eyebrow{display:flex;align-items:center;gap:9px;color:#8ce4d2;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#61ddc3;box-shadow:0 0 14px #61ddc3}
+.hero h1{max-width:620px;margin:17px 0 16px;font-size:clamp(38px,5.2vw,64px);line-height:1.1;letter-spacing:-.05em}
+.hero h1 em{color:#76e0cc;font-style:normal}
+.hero-copy{max-width:570px;color:#c0ccdb;font-size:15px;line-height:1.85}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.button-primary,.button-quiet{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 17px}
+.button-primary{font-size:13px}
+.button-primary:hover,.nav-cta:hover{background:#2865d2}
+.button-quiet{border:1px solid rgba(222,235,249,.25);border-radius:10px;color:#e8f0fa;text-decoration:none;font-size:13px}
+.hero-proof{display:flex;flex-wrap:wrap;gap:16px;margin-top:23px;color:#aabbd0;font-size:11px}
+.hero-proof span:before{content:"✓";margin-right:6px;color:#70dfca}
+.demo-frame{position:relative;min-width:0;padding:16px;border:1px solid rgba(197,218,244,.18);border-radius:20px;background:rgba(8,17,28,.62);box-shadow:0 28px 80px rgba(0,0,0,.32)}
+.demo-topline{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:1px 2px 11px;color:#9eb2c9;font-size:10px;letter-spacing:.08em}
+.demo-label{display:flex;align-items:center;gap:7px}
+.demo-canvas-wrap{position:relative;overflow:hidden;border:1px solid rgba(200,222,247,.08);border-radius:13px;background:radial-gradient(ellipse at 50% 52%,#1d3349,#101a27 78%)}
+#heroCanvas{display:block;width:100%;height:280px}
+.demo-overlay{position:absolute;left:13px;top:12px;display:flex;flex-direction:column;gap:4px;color:#d9e7f5;font-size:10px}
+.demo-overlay span:last-child{color:#8299b2}
+.demo-step-row{display:flex;gap:6px;margin-top:11px}
+.demo-step{flex:1;padding:8px 7px;border:1px solid rgba(217,232,248,.11);border-radius:8px;color:#8fa4bc;background:transparent;text-align:center;font-size:9px;letter-spacing:.04em}
+.demo-step.active{border-color:rgba(112,223,202,.55);background:rgba(75,193,169,.1);color:#83e5d2}
+.demo-projects{display:flex;gap:7px;margin:0 0 8px}
+.demo-project{padding:6px 10px;border:1px solid rgba(217,232,248,.15);border-radius:7px;background:rgba(255,255,255,.035);color:#aebfd2;font-size:10px;font-weight:750}
+.demo-project[aria-pressed=true]{border-color:rgba(112,223,202,.55);background:rgba(75,193,169,.12);color:#83e5d2}
+.demo-project:hover{border-color:rgba(112,223,202,.45);color:#e8f4ff}
+.demo-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;color:#8fa4bc;font-size:10px}
+.demo-bottom button{padding:5px 9px;border:1px solid rgba(217,232,248,.17);border-radius:7px;color:#cfdaea;background:transparent;font-size:10px}
+.section{padding:76px 0}
+.section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;margin-bottom:26px}
+.section-kicker{color:var(--blue);font-size:10px;font-weight:850;letter-spacing:.15em}
+.section-heading h2{margin:7px 0 0;font-size:clamp(26px,3vw,38px);line-height:1.2;letter-spacing:-.035em}
+.section-heading p{max-width:475px;margin:0;color:var(--muted);font-size:13px}
+.workflow{padding-top:48px;padding-bottom:38px}
+.workflow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.workflow-card{position:relative;min-height:166px;padding:20px;border:1px solid var(--line);border-radius:15px;background:#fff}
+.workflow-num{color:#83a2cc;font-size:10px;font-weight:800;letter-spacing:.12em}
+.workflow-card h3{margin:14px 0 6px;font-size:16px}
+.workflow-card p{margin:0;color:var(--muted);font-size:12px;line-height:1.7}
+.workflow-arrow{position:absolute;right:18px;top:18px;color:#92a7c0;font-size:17px}
+.workbench-section{padding-top:45px}
+.workspace{overflow:hidden;border:1px solid #d5deea;border-radius:18px;background:#fff;box-shadow:0 18px 48px rgba(29,51,80,.08)}
+.workspace-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
+.workspace-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800}
+.workspace-title small{color:#7a8aa0;font-size:9px;font-weight:650;letter-spacing:.08em}
+.toolbar-actions{display:flex;flex-wrap:wrap;gap:7px}
+.toolbar-actions button,.secondary-button,.danger-button{min-height:34px;padding:0 11px;border:1px solid #d6e0eb;border-radius:8px;background:#fff;color:#40536a;font-size:11px;font-weight:700}
+.toolbar-actions button:hover,.secondary-button:hover{border-color:#9bb8e2;background:#f6f9ff}
+.toolbar-actions .small-primary,.small-primary{border-color:var(--blue);background:var(--blue);color:#fff}
+.toolbar-actions .small-primary:hover{background:#2865d2}
+.workspace-body{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,.82fr);min-height:520px}
+.viewport-column{min-width:0;padding:15px;background:#f8fafc}
+.viewport{position:relative;overflow:hidden;border-radius:12px;background:radial-gradient(ellipse at 50% 43%,#24384f,#111d2b 82%)}
+#cadCanvas{display:block;width:100%;height:390px;touch-action:none;cursor:grab}
+#cadCanvas:active{cursor:grabbing}
+.viewport-caption{position:absolute;left:13px;top:11px;color:#c6d5e5;font-size:10px;letter-spacing:.08em;pointer-events:none}
+.viewport-hint{position:absolute;right:12px;bottom:10px;color:#aebed0;font-size:10px;pointer-events:none}
+.model-list{display:grid;gap:7px;margin-top:11px}
+.model-row{display:grid;grid-template-columns:minmax(100px,1fr) repeat(3,minmax(55px,.45fr)) auto;gap:6px;align-items:center;padding:8px;border:1px solid #e0e7ef;border-radius:9px;background:#fff}
+.model-name{overflow:hidden;min-width:0;text-overflow:ellipsis;white-space:nowrap;border:0;background:transparent;color:#253b55;text-align:left;font-size:11px;font-weight:800}
+.model-name[aria-pressed=true]{color:#2268ca}
+.axis-field{display:block;color:#8393a6;font-size:9px}
+.axis-field input{width:100%;min-height:30px;margin-top:2px;padding:4px;border:1px solid #e0e7ef;border-radius:6px;font-size:11px}
+.remove-model{padding:5px 7px;border:1px solid #e1e6ed;border-radius:6px;background:#fff;color:#748297;font-size:10px}
+.viewport-note{margin:9px 0 0;color:#7a899c;font-size:10px}
+.properties{padding:18px;border-left:1px solid var(--line)}
+.properties h3{margin:0 0 3px;font-size:14px}
+.properties-lede{margin:0 0 15px;color:var(--muted);font-size:10px}
+.property-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.field{display:block;margin:0;color:#617289;font-size:10px;font-weight:700}
+.field input,.field select{width:100%;min-height:36px;margin-top:4px;padding:6px 8px;border:1px solid #dbe3ec;border-radius:8px;background:#fff;color:#263a51;font-size:12px}
+.field.wide{grid-column:1/-1}
+.property-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 18px}
+.property-actions button{margin:0}
+.properties h4{margin:15px 0 8px;font-size:11px;letter-spacing:.04em}
+.timeline{display:grid;gap:6px}
+.feature-row{display:flex;align-items:flex-start;gap:7px;padding:8px;border:1px solid #e4eaf1;border-radius:8px;background:#f9fbfd;color:#53657b;font-size:10px}
+.feature-index{display:grid;place-items:center;flex:0 0 19px;height:19px;border-radius:6px;background:#e9f1ff;color:#326bc1;font-size:9px;font-weight:850}
+.feature-copy{min-width:0;flex:1}
+.feature-copy b{display:block;margin-bottom:2px;color:#2d4159;font-size:10px}
+.feature-row button{margin-left:auto;padding:4px 6px;border:1px solid #dce5ef;border-radius:5px;background:#fff;color:#42638a;font-size:9px}
+.properties-footnote{margin:12px 0 0;color:#78889b;font-size:10px;line-height:1.65}
+.sketch-panel{margin-top:12px;padding:10px;border:1px solid #dce6f2;border-radius:9px;background:#f8fbff}
+.sketch-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.sketch-panel-head b{font-size:10px;color:#304963}
+.constraint-state{padding:3px 6px;border-radius:5px;background:#e6f5eb;color:#28734e;font-size:9px;font-weight:800}
+.constraint-list{display:grid;gap:4px}
+.constraint-row{display:flex;justify-content:space-between;gap:8px;color:#66788e;font-size:9px}
+.constraint-row b{color:#3f5975;font-weight:700}
+.assembly-panel{margin-top:12px;padding:11px;border:1px solid #dce4ed;border-radius:10px;background:#fff}
+.assembly-panel-title{margin-bottom:8px;color:#324a64;font-size:10px;font-weight:850;letter-spacing:.04em}
+.assembly-controls{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.assembly-controls button{grid-column:1/-1}
+.assembly-note{margin:7px 0 0;color:#74859a;font-size:9px;line-height:1.55}
+.pattern-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px;margin-top:10px}
+.pattern-controls button{grid-column:1/-1}
+.pattern-controls .field input,.assembly-controls .field input,.assembly-controls .field select{min-height:32px;margin-top:3px;font-size:11px}
+.status-line{min-height:22px;margin:8px 0 0;color:#6b7b90;font-size:11px}
+.status-line.error{color:var(--red)}
+.privacy-strip{display:flex;align-items:center;gap:9px;margin:14px 0 0;padding:11px 13px;border:1px solid #dbe8e2;border-radius:10px;background:#f3faf6;color:#4e6f5c;font-size:10px}
+.privacy-icon{display:grid;place-items:center;flex:0 0 21px;height:21px;border-radius:50%;background:#dff1e7;color:#287a51;font-weight:900}
+.analysis-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.analysis-card{padding:20px;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:0 10px 30px rgba(29,51,80,.04)}
+.analysis-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.analysis-title h3{margin:0;font-size:17px}
+.analysis-tag{padding:4px 7px;border-radius:6px;background:#eef4ff;color:#3866a8;font-size:9px;font-weight:800}
+.analysis-card>p{margin:8px 0 14px;color:var(--muted);font-size:11px;line-height:1.7}
+.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:12px}
+.result{min-width:0;padding:10px;border:1px solid #e3eaf2;border-radius:9px;background:#fbfcfe}
+.result b{display:block;color:#62738a;font-size:9px}
+.result span{display:block;margin-top:4px;color:#20364f;font-size:13px;font-weight:800;overflow-wrap:anywhere}
+.result .ok{color:var(--green)}
+.result .warn{color:var(--amber)}
+.result .bad{color:var(--red)}
+.check-notes{margin:10px 0 0;padding:10px;border-left:3px solid #e3aa50;background:#fff9ed;color:#795924;font-size:10px;line-height:1.65}
+.report-actions{display:flex;gap:7px;margin-top:10px}
+.report-actions button{margin:0}
+.strength-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.strength-form .field input,.strength-form .field select{min-height:38px}
+.formula{margin-top:11px;padding:10px;border-radius:8px;background:#f3f6fa;color:#67778c;font-family:Consolas,monospace;font-size:9px;line-height:1.7;overflow-wrap:anywhere}
+.strength-results{margin-top:12px}
+.strength-status{margin-top:10px;padding:10px;border-radius:8px;font-size:11px;font-weight:750}
+.strength-status.pass{background:#edf8f1;color:#216b46}
+.strength-status.fail{background:#fff3ec;color:#985426}
+.strength-disclaimer{margin-top:12px;padding:11px;border:1px solid #f0dfc2;border-radius:9px;background:#fffaf0;color:#785b2e;font-size:10px;line-height:1.7}
+.differentiator{background:#111e2d;color:#eef4fa}
+.differentiator .section-kicker{color:#76e0cc}
+.differentiator .section-heading h2{color:#f3f7fb}
+.differentiator .section-heading p{color:#aebed0}
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.diff-card{padding:18px;border:1px solid rgba(201,221,244,.15);border-radius:12px;background:rgba(255,255,255,.035)}
+.diff-card h3{margin:0 0 6px;color:#83dfcf;font-size:13px}
+.diff-card p{margin:0;color:#b3c2d3;font-size:11px;line-height:1.7}
+.sources{display:flex;flex-wrap:wrap;gap:14px;margin-top:20px}
+.sources a{color:#b4cde8;font-size:10px;text-decoration:none}
+.sources a:hover{text-decoration:underline}
+.site-footer{padding:26px 0;background:#0a1421;color:#8ea0b5}
+.footer-row{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:10px}
+.footer-row a{color:#c6d5e6;text-decoration:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:850px){
+    .hero-grid{grid-template-columns:1fr;gap:28px;padding:52px 0}
+    .demo-frame{max-width:680px}
+    .workspace-body{grid-template-columns:1fr}
+    .properties{border-left:0;border-top:1px solid var(--line)}
+    .analysis-layout{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+    .wrap{width:min(100% - 26px,1180px)}
+    .header-inner{height:60px}
+    .top-nav{gap:12px}
+    .top-nav a{font-size:10px}
+    .top-nav .nav-cta{display:none}
+    .brand{font-size:12px}
+    .hero-grid{padding:43px 0}
+    .hero-copy{font-size:13px}
+    #heroCanvas{height:220px}
+    .workflow-grid,.diff-grid{grid-template-columns:1fr}
+    .workflow-card{min-height:130px}
+    .section{padding:55px 0}
+    .section-heading{display:block}
+    .section-heading p{margin-top:10px}
+    .workspace-toolbar{align-items:flex-start;flex-direction:column}
+    .toolbar-actions{width:100%}
+    .toolbar-actions button{flex:1}
+    #cadCanvas{height:300px}
+    .model-row{grid-template-columns:minmax(90px,1fr) repeat(3,minmax(42px,.5fr)) auto;gap:3px;padding:6px}
+    .axis-field input{padding:3px}
+    .remove-model{padding:5px}
+    .footer-row{align-items:flex-start;flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.site-header{background:#1b222d;color:#e8edf4;border-bottom-color:#39414d}
+.brand-mark{background:linear-gradient(140deg,#71e6cf,#67a9ff)}
+.top-nav a{color:#c3ccd8}
+.header-inner{height:40px}
+.brand{font-size:12px}
+.brand-mark{width:26px;height:26px}
+main{display:flex;flex-direction:column}
+.workbench-section{order:-1;min-height:calc(100vh - 40px);padding:0;background:#252b35;color:#e3e8ef}
+.workbench-section>.wrap{width:100%;margin:0}
+.workbench-section .section-heading{width:min(1500px,100%);height:44px;align-items:center;margin:0 auto;padding:4px 22px}
+.workbench-section .section-kicker,.workbench-section .section-heading p{display:none}
+.workbench-section .section-heading h2{margin:0;color:#f0f3f8;font-size:17px}
+.workbench-section .section-kicker{color:#7eaef7}
+.workspace{overflow:visible;border:0;border-top:1px solid #3b4350;border-radius:0;background:#202630;box-shadow:none}
+.workspace-toolbar{position:relative;display:grid;grid-template-columns:1fr;gap:0;padding:0 15px;border-bottom:1px solid #3a424e;background:#272e39}
+.workspace-title{min-height:34px;color:#e1e7ef}
+.workspace-title .brand-mark{width:25px;height:25px;border-radius:6px}
+.workspace-title small{padding-left:8px;color:#90a0b3}
+.workspace-tabs{display:flex;gap:3px;overflow-x:auto;border-top:1px solid #343c48}
+.workspace-tab{flex:none;padding:7px 13px;border:0;border-bottom:2px solid transparent;background:transparent;color:#aeb8c6;font-size:11px}
+.workspace-tab:hover{background:#303846;color:#f2f5f9}
+.workspace-tab[aria-selected=true]{border-bottom-color:#5f9bff;background:#303846;color:#f2f5f9}
+.toolbar-actions{display:flex;min-height:48px;align-items:center;gap:7px;overflow-x:auto}
+.toolbar-actions button,.secondary-button,.danger-button{flex:none;border-color:#485361;background:#303844;color:#d4dce6}
+.toolbar-actions button:hover,.secondary-button:hover{border-color:#7292bd;background:#394454}
+.toolbar-actions .small-primary,.small-primary{border-color:#3977e5;background:#3977e5;color:#fff}
+.toolbar-actions [hidden],.workspace-panel[hidden]{display:none!important}
+.workspace-body{grid-template-columns:225px minmax(0,1fr) 300px;min-height:calc(100vh - 225px);background:#202630}
+.browser-panel{min-width:0;padding:12px 9px;border-right:1px solid #3b4350;background:#242b36}
+.browser-heading{display:flex;justify-content:space-between;margin:1px 5px 12px;color:#d6dde7;font-size:11px;font-weight:800}
+.browser-root{display:flex;align-items:center;gap:7px;padding:7px 6px;border-radius:6px;background:#303946;color:#dce4ef;font-size:10px;font-weight:750}
+.browser-group{margin:11px 0 5px;padding:0 6px;color:#9eacbd;font-size:9px;font-weight:750;letter-spacing:.04em}
+.model-list{gap:5px;margin-top:0;max-height:65vh;min-height:160px;overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.model-row{grid-template-columns:repeat(3,minmax(0,1fr)) auto;grid-template-rows:auto auto;gap:5px;padding:6px;border-color:#3b4552;border-radius:6px;background:#28313d}
+.model-name{color:#d4dde8;font-size:10px}
+.model-row .model-name{grid-column:1/4;grid-row:1}
+.model-row .remove-model{grid-column:4;grid-row:1}
+.model-row .axis-field{grid-row:2}
+.model-name[aria-pressed=true]{color:#8fbbff}
+.axis-field{color:#9ba9b9}
+.axis-field input{min-height:26px;border-color:#424d5b;background:#222a34;color:#d8e0ea}
+.remove-model{border-color:#424d5b;background:#303844;color:#aeb9c7}
+.viewport-column{min-height:0;padding:10px;background:#202630}
+.viewport{flex:1;min-height:480px;border:1px solid #39424f;border-radius:3px;background-color:#202936;background-image:linear-gradient(rgba(185,202,224,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(185,202,224,.045) 1px,transparent 1px);background-size:28px 28px,28px 28px}
+#cadCanvas{height:100%;min-height:480px}
+.viewport-caption{color:#b4c3d5}
+.viewport-hint{color:#adbac9}
+.viewport-actions{position:absolute;right:11px;top:10px;display:flex;gap:5px}
+.viewport-actions button{width:28px;height:26px;border:1px solid #596575;border-radius:5px;background:#303946;color:#e0e7f0;font-size:12px}
+.viewport-actions button:hover{background:#405066}
+.view-axis{position:absolute;right:15px;top:49px;display:grid;place-items:center;width:47px;height:47px;border:1px solid #495666;border-radius:50%;background:#29323e;color:#aebccc;font-size:9px;line-height:1.15;text-align:center;pointer-events:none}
+.model-row .axis-field input{width:100%}
+.assembly-panel{border-color:#414b59;background:#28313d}
+.assembly-panel-title{color:#d1dbe7}
+.assembly-note{color:#aeb9c7}
+.field{color:#aebaca}
+.field input,.field select{border-color:#46515f;background:#202833;color:#e1e8f1;color-scheme:dark}
+.properties{overflow:auto;padding:15px;border-left:1px solid #3b4350;background:#252c37}
+.properties h3,.properties h4{color:#e1e7ef}
+.properties-lede,.properties-footnote{color:#a8b4c3}
+.property-fields{gap:8px}
+.sketch-panel{border-color:#465365;background:#202a37}
+.sketch-panel-head b{color:#d9e3ef}
+.constraint-row{color:#aab7c7}
+.constraint-row b{color:#d8e3f0}
+.feature-row{border-color:#414b58;background:#2c3541;color:#b8c4d2}
+.feature-copy b{color:#e0e7ef}
+.feature-index{background:#344a67;color:#a9caff}
+.feature-row button{border-color:#515e6e;background:#343e4a;color:#c5d5e8}
+.feature-history{padding:10px 14px 13px;border-top:1px solid #3b4350;background:#242b36}
+.feature-history-title{margin-bottom:7px;color:#cbd5e1;font-size:10px;font-weight:800;letter-spacing:.04em}
+.feature-history .timeline{display:flex;gap:7px;overflow-x:auto}
+.feature-history .feature-row{min-width:190px;max-width:250px;align-items:center}
+.viewport-note{color:#9eacbd}
+.status-line{width:min(1500px,100%);margin:8px auto;padding:0 22px;color:#b2bdca}
+.privacy-strip{width:min(1500px,calc(100% - 44px));margin:8px auto 14px;border-color:#344d46;background:#25342f;color:#b8d2c4}
+.privacy-icon{background:#344f43;color:#9fe0bb}
+.workspace-toolbar .toolbar-actions button[aria-pressed=true]{border-color:#71a6ff;background:#36527a;color:#fff}
+@media(max-width:1050px){
+    .workspace-body{grid-template-columns:185px minmax(0,1fr) 275px}
+}
+@media(max-width:850px){
+    .workspace-body{grid-template-columns:1fr}
+    .browser-panel{border-right:0;border-bottom:1px solid #3b4350}
+    .model-list{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+    .viewport-column{min-height:0}
+    .viewport{min-height:400px}
+    #cadCanvas{min-height:400px}
+    .properties{border-top:1px solid #3b4350;border-left:0}
+}
+@media(max-width:620px){
+    .workbench-section .section-heading{padding:14px 13px 10px}
+    .workbench-section .section-heading h2{font-size:20px}
+    .workspace-toolbar{padding:0 9px}
+    .toolbar-actions{min-height:54px}
+    .workspace-tab{padding:8px 10px}
+    .viewport-column{padding:7px}
+    .viewport{min-height:330px}
+    #cadCanvas{min-height:330px}
+    .properties{padding:12px}
+    .model-list{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#workbench">ワークベンチへ移動</a>
+<header class="site-header">
+    <div class="wrap header-inner">
+        <a class="brand" href="#top" aria-label="NX Automation Labs ホーム"><span class="brand-mark">NX</span><span>NX AUTOMATION LABS</span></a>
+        <nav class="top-nav" aria-label="主要機能">
+            <a href="#workbench">CADワークベンチ</a>
+            <a href="#inspection">形状チェック</a>
+            <a href="#strength">強度チェック</a>
+            <a class="nav-cta" href="#workbench">モデルを開く ↓</a>
+        </nav>
+    </div>
+</header>
+
+<main id="top">
+    <section class="hero">
+        <div class="wrap hero-grid">
+            <div>
+                <div class="eyebrow"><span class="live-dot"></span> Design · Verify · Estimate</div>
+                <h1>好きなものを、<em>設計してつくる。</em></h1>
+                <p class="hero-copy">ミニ四駆風レーシングカーを、CADワークベンチでスケッチ・押し出し・部品組立するイメージで3D表示。身近な作例から寸法編集や形状チェックまでブラウザー内で試せます。</p>
+                <div class="hero-actions">
+                    <a class="button-primary" href="#workbench">ワークベンチを使う <span aria-hidden="true">&nbsp;→</span></a>
+                    <a class="button-quiet" href="#workflow">機能を見る</a>
+                </div>
+                <div class="hero-proof"><span>ローカル処理</span><span>STL / OBJ</span><span>mm・N・MPa</span></div>
+            </div>
+            <div class="demo-frame">
+                <div class="demo-topline"><span class="demo-label"><span class="live-dot"></span> DIY MODEL PREVIEW</span><span>CAD WORKBENCH · LIVE BUILD</span></div>
+                <div class="demo-projects" role="group" aria-label="デモモデルを選択">
+                    <button type="button" class="demo-project" data-demo-project="mini4wd" aria-pressed="true">ミニ四駆風</button>
+                    <button type="button" class="demo-project" data-demo-project="furniture" aria-pressed="false">家具・デスク</button>
+                </div>
+                <div class="demo-canvas-wrap">
+                    <canvas id="heroCanvas" aria-label="ミニ四駆風レーシングカーの設計から組立までを段階表示する3Dデモ"></canvas>
+                    <div class="demo-overlay"><span id="demoFeature">01 · CONSTRAINED SKETCH</span><span id="demoDimensions">BASE 92 × 60 · R4 · Ø14</span></div>
+                </div>
+                <div class="demo-step-row" aria-label="設計ワークフロー">
+                    <button type="button" class="demo-step active" data-demo-step="0" aria-pressed="true">01 · SKETCH</button>
+                    <button type="button" class="demo-step" data-demo-step="1" aria-pressed="false">02 · CHASSIS</button>
+                    <button type="button" class="demo-step" data-demo-step="2" aria-pressed="false">03 · DRIVE</button>
+                    <button type="button" class="demo-step" data-demo-step="3" aria-pressed="false">04 · BODY</button>
+                </div>
+                <div class="demo-bottom"><span id="demoCaption">XYスケッチでシャーシ寸法と駆動系の基準を拘束。</span><button type="button" id="demoToggle" aria-pressed="false">一時停止</button></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section workflow" id="workflow">
+        <div class="wrap">
+            <div class="section-heading">
+                <div><div class="section-kicker">ONE ENGINEERING FLOW</div><h2>設計の判断を、ひと続きに。</h2></div>
+                <p>CADを作るだけでも、解析を別々に回すだけでもない。形状と検査結果を同じワークスペースで確認します。</p>
+            </div>
+            <div class="workflow-grid">
+                <article class="workflow-card"><span class="workflow-num">01 / MODEL</span><span class="workflow-arrow">↗</span><h3>パラメトリック形状</h3><p>寸法を編集し、板・穴・円柱を再生成。変更履歴から過去形状へ戻せます。</p></article>
+                <article class="workflow-card"><span class="workflow-num">02 / VERIFY</span><span class="workflow-arrow">↗</span><h3>形状・組付けチェック</h3><p>メッシュ欠陥や寸法を確認し、部品同士の干渉候補を早い段階で見つけます。</p></article>
+                <article class="workflow-card"><span class="workflow-num">03 / ESTIMATE</span><span class="workflow-arrow">↗</span><h3>強度の一次評価</h3><p>材料・断面・荷重から片持ち梁の曲げ応力とたわみを計算。設計の当たりをつけます。</p></article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section workbench-section" id="workbench">
+        <div class="wrap">
+            <div class="section-heading">
+                <div><div class="section-kicker">BROWSER CAD WORKSPACE</div><h2>形状をつくり、寸法を変える。</h2></div>
+                <p>拘束寸法、スケッチフィレット、フィーチャー履歴、部品接続を編集。モデルデータは端末内だけで扱います。</p>
+            </div>
+            <div class="workspace">
+                <div class="workspace-toolbar">
+                    <div class="workspace-title"><span class="brand-mark">3D</span> CADワークベンチ <small>LOCAL SESSION</small></div>
+                    <div class="workspace-tabs" role="tablist" aria-label="モデリングコマンド">
+                        <button type="button" class="workspace-tab" role="tab" data-command-tab="model" aria-selected="true">モデル</button>
+                        <button type="button" class="workspace-tab" role="tab" data-command-tab="sketch" aria-selected="false">スケッチ</button>
+                        <button type="button" class="workspace-tab" role="tab" data-command-tab="assembly" aria-selected="false">アセンブリ</button>
+                        <button type="button" class="workspace-tab" role="tab" data-command-tab="view" aria-selected="false">表示</button>
+                    </div>
+                    <div class="toolbar-actions workspace-panel" data-command-panel="model" role="tabpanel">
+                        <button type="button" class="small-primary" id="addPlate">＋ 穴付きプレート</button>
+                        <button type="button" id="addBox">＋ 角丸ボックス</button>
+                        <button type="button" id="addCylinder">＋ 円柱</button>
+                        <button type="button" id="openMesh">STL / OBJ 読込</button>
+                        <button type="button" id="openProject">プロジェクトを開く</button>
+                        <button type="button" id="saveProject">プロジェクト保存</button>
+                        <button type="button" id="exportStl">STL出力</button>
+                    </div>
+                    <div class="toolbar-actions workspace-panel" data-command-panel="sketch" role="tabpanel" hidden>
+                        <button type="button" class="small-primary" id="startSketch" aria-pressed="false">XYスケッチを表示</button>
+                        <button type="button" id="quickExtrude">押し出しを再生成</button>
+                        <button type="button" id="quickRevolve">360°回転</button>
+                        <button type="button" id="quickHole">貫通穴</button>
+                        <button type="button" id="quickFillet">スケッチ角R</button>
+                    </div>
+                    <div class="toolbar-actions workspace-panel" data-command-panel="assembly" role="tabpanel" hidden>
+                        <button type="button" id="showAssembly">関節・配置パターン</button>
+                        <button type="button" id="createPatternRibbon">直線パターンを作成</button>
+                    </div>
+                    <div class="toolbar-actions workspace-panel" data-command-panel="view" role="tabpanel" hidden>
+                        <button type="button" id="fitView">全体表示</button>
+                        <button type="button" id="isoView">アイソメトリック</button>
+                        <button type="button" id="topView">上面</button>
+                        <button type="button" id="bottomView" title="ボディカウルを一時的に隠し、シャーシ下面を表示">下面・内部</button>
+                        <button type="button" id="solidView">3Dモデル表示</button>
+                    </div>
+                    <input type="file" id="meshFiles" accept=".stl,.obj,model/stl,text/plain" multiple hidden>
+                    <input type="file" id="projectFile" accept=".json,application/json" hidden>
+                </div>
+                <div class="workspace-body">
+                    <aside class="browser-panel" aria-label="モデルブラウザ">
+                        <div class="browser-heading"><span>ブラウザ</span><span aria-hidden="true">⋯</span></div>
+                        <div class="browser-root"><span aria-hidden="true">◉</span><span>モデル</span></div>
+                        <div class="browser-group">ボディ・配置</div>
+                        <div class="model-list" id="modelList" aria-label="モデルと配置"></div>
+                        <div class="browser-group">表示中のモデルを選択して寸法・フィーチャーを編集</div>
+                    </aside>
+                    <div class="viewport-column">
+                        <div class="viewport">
+                            <canvas id="cadCanvas" aria-label="3Dモデル表示。ドラッグで回転、ホイールで拡大縮小"></canvas>
+                            <span class="viewport-caption" id="viewportMode">3D VIEW · mm</span>
+                            <span class="viewport-hint">ドラッグ：回転 / ホイール：ズーム</span>
+                            <div class="viewport-actions" aria-label="ビュー操作">
+                                <button type="button" id="homeView" aria-label="標準ビュー">⌂</button>
+                                <button type="button" id="zoomIn" aria-label="拡大">＋</button>
+                                <button type="button" id="zoomOut" aria-label="縮小">−</button>
+                            </div>
+                            <div class="view-axis" aria-hidden="true">Z<br>Y · X</div>
+                        </div>
+                        <div class="assembly-panel" id="assemblyControls">
+                            <div class="assembly-panel-title">アセンブリ拘束</div>
+                            <div class="assembly-controls">
+                                <label class="field" for="jointType">接続タイプ<select id="jointType"><option value="fixed">固定</option><option value="revolute">回転（Z軸）</option><option value="slider">スライダー（Z方向）</option></select></label>
+                                <label class="field" id="jointValueField" for="jointValue">関節値<input type="number" id="jointValue" step="1" value="0"></label>
+                                <button type="button" class="secondary-button" id="applyJoint">関節を適用</button>
+                            </div>
+                            <p class="assembly-note" id="assemblyNote">先頭部品を基準として固定します。追加部品にはZ軸回転またはZ方向スライドを設定できます。</p>
+                            <div class="pattern-controls">
+                                <label class="field" for="patternCount">パターン数<input type="number" id="patternCount" min="2" max="8" step="1" value="3"></label>
+                                <label class="field" for="patternSpacing">Xピッチ (mm)<input type="number" id="patternSpacing" min="0.1" max="100000" step="1" value="40"></label>
+                                <button type="button" class="secondary-button" id="createPattern">直線パターンを作成</button>
+                            </div>
+                        </div>
+                        <p class="viewport-note">部品の配置値は検査にも反映されます。外接範囲の干渉候補は右側で部品を移動して再確認してください。</p>
+                    </div>
+                    <aside class="properties" aria-label="選択形状の寸法とフィーチャー">
+                        <h3>形状プロパティ</h3>
+                        <p class="properties-lede" id="selectedModel">形状を選択してください。</p>
+                        <div class="property-fields">
+                            <label class="field wide" for="partName">部品名<input id="partName" type="text" maxlength="120" value="取付プレート"></label>
+                            <label class="field wide" for="profileType">プロファイル / 生成方法
+                                <select id="profileType"><option value="plate">矩形スケッチ → 押し出し + 貫通穴</option><option value="cylinder">円スケッチ → 360°回転</option><option value="box">矩形スケッチ → 押し出し</option></select>
+                            </label>
+                            <label class="field" id="xField" for="dimX">幅 X (mm)<input type="number" id="dimX" min="0.01" max="100000" step="0.1" value="80"></label>
+                            <label class="field" id="yField" for="dimY">幅 Y (mm)<input type="number" id="dimY" min="0.01" max="100000" step="0.1" value="50"></label>
+                            <label class="field wide" for="dimZ">厚み・高さ Z (mm)<input type="number" id="dimZ" min="0.01" max="100000" step="0.1" value="12"></label>
+                            <label class="field wide" id="holeField" for="holeDiameter">貫通穴径 (mm)<input type="number" id="holeDiameter" min="0" max="99999" step="0.1" value="10"></label>
+                            <label class="field wide" id="cornerRadiusField" for="cornerRadius">スケッチコーナーR (mm)<input type="number" id="cornerRadius" min="0" max="24999" step="0.1" value="4"></label>
+                        </div>
+                        <div class="sketch-panel" id="sketchPanel">
+                            <div class="sketch-panel-head"><b>拘束スケッチ · XY平面</b><span class="constraint-state" id="constraintState">完全拘束</span></div>
+                            <div class="constraint-list" id="constraintList"></div>
+                        </div>
+                        <div class="property-actions">
+                            <button type="button" class="small-primary" id="applyDimensions">形状を再生成</button>
+                            <button type="button" class="secondary-button" id="recordFeature">履歴に記録</button>
+                        </div>
+                        <p class="properties-footnote">定義済みプロファイルの水平/垂直・原点・寸法拘束を編集できます。自由曲線の汎用拘束ソルバーやB-repカーネルではありません。</p>
+                    </aside>
+                </div>
+                <div class="feature-history">
+                    <div class="feature-history-title">フィーチャー履歴</div>
+                    <div class="timeline" id="timeline"></div>
+                </div>
+            </div>
+            <p class="status-line" id="appStatus" aria-live="polite">サンプルモデルを表示しています。</p>
+            <div class="privacy-strip"><span class="privacy-icon">✓</span><span>モデルの読込・保存・検査はこのブラウザー内で実行。サーバーへのCADデータ送信はありません。</span></div>
+        </div>
+    </section>
+
+    <section class="section" id="inspection">
+        <div class="wrap">
+            <div class="section-heading">
+                <div><div class="section-kicker">GEOMETRY QA</div><h2>形状の問題と干渉候補を先に見る。</h2></div>
+                <p>閉じていないメッシュ、退化面、寸法、部品配置を可視化。製造・組立レビュー前のセルフチェックに。</p>
+            </div>
+            <div class="analysis-layout">
+                <article class="analysis-card">
+                    <div class="analysis-title"><h3>モデル形状チェック</h3><span class="analysis-tag">MESH QA</span></div>
+                    <p>各モデルの外接寸法、面積・体積の参考値、エッジ接続状態を計算し、JSONレポートにできます。</p>
+                    <button type="button" class="small-primary" id="runChecks">形状を検査</button>
+                    <div class="results" id="geometryResults" aria-live="polite"><div class="result"><b>検査準備</b><span>「形状を検査」を実行してください</span></div></div>
+                    <div class="report-actions"><button type="button" class="secondary-button" id="saveReport" disabled>検査レポート保存</button></div>
+                </article>
+                <article class="analysis-card">
+                    <div class="analysis-title"><h3>部品間の干渉候補</h3><span class="analysis-tag">ASSEMBLY QA</span></div>
+                    <p>部品配置を反映した軸平行外接直方体（AABB）の重なりを抽出します。干渉を見逃さないための高速な一次スクリーニングです。</p>
+                    <div class="results" id="interferenceResults" aria-live="polite"><div class="result"><b>判定範囲</b><span>形状検査を実行すると候補を表示します</span></div></div>
+                    <div class="check-notes">AABBが重なっても実形状が交差していない場合があります。現状は三角形同士の正確な交差・ソリッド干渉・メッシュ自己交差を解くジオメトリカーネルではありません。</div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="strength">
+        <div class="wrap">
+            <div class="section-heading">
+                <div><div class="section-kicker">PRELIMINARY STRENGTH</div><h2>形状から、強度の当たりをつける。</h2></div>
+                <p>選択したパラメトリック部品を片持ち梁として理想化し、材料と先端荷重から曲げ応力・たわみ・安全率を概算します。</p>
+            </div>
+            <div class="analysis-card">
+                <div class="analysis-title"><h3>片持ち梁・先端集中荷重</h3><span class="analysis-tag">線形弾性・解析式</span></div>
+                <p>モデル寸法を断面と長さに使うため、形状変更後の強度目安をすぐに再計算できます。</p>
+                <div class="strength-form">
+                    <label class="field" for="strengthModel">評価するCAD形状<select id="strengthModel"></select></label>
+                    <label class="field" for="material">材料プリセット<select id="material"><option value="steel">一般構造用鋼（参考）</option><option value="aluminum">Al 6061-T6（参考）</option><option value="stainless">SUS304（参考）</option></select></label>
+                    <label class="field" for="elasticModulus">ヤング率 E (MPa)<input type="number" id="elasticModulus" min="1" step="1000" value="210000"></label>
+                    <label class="field" for="yieldStrength">降伏・耐力 (MPa)<input type="number" id="yieldStrength" min="1" step="1" value="250"></label>
+                    <label class="field" for="tipLoad">先端荷重 F (N)<input type="number" id="tipLoad" min="0.01" step="1" value="100"></label>
+                    <label class="field" for="requiredSafety">目標安全率<input type="number" id="requiredSafety" min="0.1" step="0.1" value="1.5"></label>
+                </div>
+                <div class="property-actions"><button type="button" class="small-primary" id="runStrength">強度を概算</button></div>
+                <div class="results strength-results" id="strengthResults" aria-live="polite"><div class="result"><b>解析の状態</b><span>モデルと条件を選んで概算してください</span></div></div>
+                <div class="formula">矩形断面: σ = FL / (b h² / 6), δ = FL³ / (3 E I), I = b h³ / 12<br>円断面: σ = 32 FL / (π d³), I = π d⁴ / 64</div>
+                <div class="strength-disclaimer">これはEuler–Bernoulli片持ち梁理論による設計初期の目安であり、有限要素解析（FEA）や規格適合判定ではありません。穴による断面欠損や応力集中、せん断、座屈、接合部、塑性・疲労、実際の荷重分布は評価しません。安全・品質に関わる判断は、適切な解析と専門家による検証を行ってください。</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section differentiator" id="approach">
+        <div class="wrap">
+            <div class="section-heading">
+                <div><div class="section-kicker">WHY NX AUTOMATION LABS</div><h2>汎用CADを置き換えるのではなく、検証を近づける。</h2></div>
+                <p>スケッチ拘束、編集可能なフィーチャー、関節付き部品を形状QA・強度の一次評価へつなぎます。モデルはブラウザー内で処理します。</p>
+            </div>
+            <div class="diff-grid">
+                <article class="diff-card"><h3>設計から検査まで同じモデル</h3><p>寸法変更、メッシュチェック、部品配置、強度の目安を同じ作業場所に集約。</p></article>
+                <article class="diff-card"><h3>出図・製造前のセルフレビュー</h3><p>境界エッジや外接干渉候補など、見落としやすい確認点を分かりやすく提示。</p></article>
+                <article class="diff-card"><h3>ローカルファースト</h3><p>CADファイルをアップロードせずに試せる設計。機密形状を扱う利用者の不安を減らします。</p></article>
+            </div>
+            <div class="sources" aria-label="機能設計の参考資料">
+                <a href="https://solidcraft.io/features/" target="_blank" rel="noopener noreferrer">SolidCraft · modeling tools and feature history ↗</a>
+                <a href="https://meshinspector.com/feature/" target="_blank" rel="noopener noreferrer">MeshInspector · inspection workflows ↗</a>
+                <a href="https://doc.cgal.org/latest/Polygon_mesh_processing/index.html" target="_blank" rel="noopener noreferrer">CGAL · mesh intersection algorithms ↗</a>
+            </div>
+        </div>
+    </section>
+</main>
+<script>
+(function(){
+    "use strict";
+    const $ = id => document.getElementById(id);
+    const MAX_FACES = 50000;
+    const MAX_PROJECT_MODELS = 100;
+    const models = [];
+    let activeId = null, lastReport = null;
+    let yaw = -.62, pitch = -.58, zoom = 1, dragging = false, pointer = null, sketchMode = false, bottomViewEnabled = false;
+    let demoPlaying = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let demoAngle=-.5, demoTimer=performance.now(), demoFrame=0, demoStepIndex=0, strengthHasRun=false;
+
+    function status(message,error){
+        const el=$("appStatus");el.textContent=message;el.classList.toggle("error",!!error);
+    }
+
+    function makePlateMesh(width,depth,height,holeDiameter,cornerRadius=0){
+        if(!(holeDiameter>0)&&!(cornerRadius>0)) return makeBoxMesh(width,depth,height);
+        const segments=64,radius=holeDiameter/2,outerX=width/2,outerY=depth/2;
+        const outer=[],inner=[];
+        if(cornerRadius>0){
+            const r=cornerRadius,arcSteps=8,lineSteps=8;
+            function arc(cx,cy,start,end){
+                for(let i=0;i<arcSteps;i++){const angle=start+(end-start)*i/arcSteps;outer.push([cx+r*Math.cos(angle),cy+r*Math.sin(angle)]);}
+            }
+            function line(a,b){
+                for(let i=0;i<lineSteps;i++){const t=i/lineSteps;outer.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);}
+            }
+            arc(outerX-r,-outerY+r,-Math.PI/2,0);
+            line([outerX,-outerY+r],[outerX,outerY-r]);
+            arc(outerX-r,outerY-r,0,Math.PI/2);
+            line([outerX-r,outerY],[-outerX+r,outerY]);
+            arc(-outerX+r,outerY-r,Math.PI/2,Math.PI);
+            line([-outerX,outerY-r],[-outerX,-outerY+r]);
+            arc(-outerX+r,-outerY+r,Math.PI,Math.PI*1.5);
+            line([-outerX+r,-outerY],[outerX-r,-outerY]);
+        }else{
+            for(let side=0;side<4;side++){
+                for(let i=0;i<segments/4;i++){
+                    const t=i/(segments/4);
+                    if(side===0) outer.push([-outerX+width*t,-outerY]);
+                    else if(side===1) outer.push([outerX,-outerY+depth*t]);
+                    else if(side===2) outer.push([outerX-width*t,outerY]);
+                    else outer.push([-outerX,outerY-depth*t]);
+                }
+            }
+        }
+        if(holeDiameter>0)for(let i=0;i<segments;i++){const angle=2*Math.PI*i/segments;inner.push([radius*Math.cos(angle),radius*Math.sin(angle)]);}
+        const vertices=[];
+        outer.forEach(([x,y])=>vertices.push([x,y,0]));
+        outer.forEach(([x,y])=>vertices.push([x,y,height]));
+        const faces=[];
+        if(holeDiameter>0){
+            inner.forEach(([x,y])=>vertices.push([x,y,0]));
+            inner.forEach(([x,y])=>vertices.push([x,y,height]));
+            for(let i=0;i<segments;i++){
+                const j=(i+1)%segments,bo=i,to=segments+i,bi=2*segments+i,ti=3*segments+i;
+                const boj=j,toj=segments+j,bij=2*segments+j,tij=3*segments+j;
+                faces.push([to,toj,tij],[to,tij,ti]);
+                faces.push([bo,bij,boj],[bo,bi,bij]);
+                faces.push([bo,boj,toj],[bo,toj,to]);
+                faces.push([bi,tij,bij],[bi,ti,tij]);
+            }
+        }else{
+            const bottomCenter=vertices.length;vertices.push([0,0,0]);
+            const topCenter=vertices.length;vertices.push([0,0,height]);
+            for(let i=0;i<segments;i++){
+                const j=(i+1)%segments,bo=i,to=segments+i,boj=j,toj=segments+j;
+                faces.push([topCenter,to,toj],[bottomCenter,boj,bo]);
+                faces.push([bo,boj,toj],[bo,toj,to]);
+            }
+        }
+        return {vertices,faces};
+    }
+
+    function makeBoxMesh(width,depth,height){
+        const x=width/2,y=depth/2;
+        return {vertices:[[-x,-y,0],[x,-y,0],[x,y,0],[-x,y,0],[-x,-y,height],[x,-y,height],[x,y,height],[-x,y,height]],
+            faces:[[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]]};
+    }
+
+    function makeCylinderMesh(diameter,height){
+        const count=48,r=diameter/2,vertices=[],faces=[];
+        for(let z=0;z<2;z++) for(let i=0;i<count;i++){const a=2*Math.PI*i/count;vertices.push([r*Math.cos(a),r*Math.sin(a),z?height:0]);}
+        const bottomCenter=vertices.length;vertices.push([0,0,0]);
+        const topCenter=vertices.length;vertices.push([0,0,height]);
+        for(let i=0;i<count;i++){
+            const j=(i+1)%count,bi=i,bj=j,ti=count+i,tj=count+j;
+            faces.push([bottomCenter,bj,bi],[topCenter,ti,tj],[bi,bj,tj],[bi,tj,ti]);
+        }
+        return {vertices,faces};
+    }
+
+    function buildMesh(model){
+        if(model.profile==="cylinder") return makeCylinderMesh(model.dimensions[0],model.dimensions[2]);
+        return makePlateMesh(model.dimensions[0],model.dimensions[1],model.dimensions[2],model.profile==="plate"?(model.holeDiameter||0):0,model.cornerRadius||0);
+    }
+
+    function createParametric(profile,name){
+        const model={id:newId(),name,profile,parametric:true,dimensions:profile==="cylinder"?[30,30,45]:profile==="box"?[72,48,30]:[80,50,12],holeDiameter:profile==="plate"?10:0,cornerRadius:profile==="plate"?4:0,offset:[0,0,0],joint:{type:"fixed",value:0},history:[]};
+        model.mesh=buildMesh(model);models.push(model);activeId=model.id;return model;
+    }
+    function newId(){return "m"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+    function selected(){return models.find(m=>m.id===activeId)||null;}
+    function pointKey(p){return p.map(n=>Number(n).toFixed(6)).join(",");}
+
+    function parseBinaryStl(buffer){
+        if(buffer.byteLength<84)throw new Error("STLヘッダーが短すぎます。");
+        const view=new DataView(buffer),count=view.getUint32(80,true);
+        if(count>MAX_FACES)throw new Error("三角形数が上限を超えています（"+MAX_FACES.toLocaleString()+"）。");
+        if(buffer.byteLength!==84+count*50)return null;
+        const vertices=[],faces=[],seen=new Map();
+        function vertex(p){const k=pointKey(p);if(seen.has(k))return seen.get(k);const i=vertices.length;vertices.push(p);seen.set(k,i);return i;}
+        for(let i=0;i<count;i++){
+            const start=96+i*50,tri=[];
+            for(let j=0;j<3;j++){const p=[0,1,2].map(k=>view.getFloat32(start+j*12+k*4,true));if(!finite3(p))throw new Error("STL座標は±1,000,000 mm以内の有限値にしてください。");tri.push(vertex(p));}
+            faces.push(tri);
+        }
+        if(!faces.length)throw new Error("STLに三角形がありません。");
+        return {vertices,faces};
+    }
+
+    function parseAsciiStl(text){
+        const vertices=[],faces=[],seen=new Map(),re=/\bvertex\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/gi;let m,tri=[];
+        function vertex(p){const k=pointKey(p);if(seen.has(k))return seen.get(k);const i=vertices.length;vertices.push(p);seen.set(k,i);return i;}
+        while((m=re.exec(text))!==null){
+            const p=m.slice(1,4).map(Number);if(!finite3(p))throw new Error("STL座標は±1,000,000 mm以内の有限値にしてください。");
+            tri.push(vertex(p));if(tri.length===3){faces.push(tri);tri=[];if(faces.length>MAX_FACES)throw new Error("三角形数が上限を超えています。");}
+        }
+        if(tri.length||!faces.length)throw new Error("ASCII STLの面データを読み取れません。");
+        return {vertices,faces};
+    }
+
+    function parseObj(text){
+        const vertices=[],faces=[];
+        for(const raw of text.split(/\r?\n/)){
+            const line=raw.trim();if(!line||line[0]==="#")continue;
+            const fields=line.split(/\s+/);
+            if(fields[0]==="v"){
+                if(fields.length<4)throw new Error("OBJの頂点行が不正です。");
+                const p=fields.slice(1,4).map(Number);if(!finite3(p))throw new Error("OBJ座標は±1,000,000 mm以内の有限値にしてください。");vertices.push(p);
+            }else if(fields[0]==="f"){
+                if(fields.length<4)throw new Error("OBJの面には3頂点以上が必要です。");
+                const ids=fields.slice(1).map(token=>{
+                    const n=Number(token.split("/")[0]);if(!Number.isInteger(n)||n===0)throw new Error("OBJの面インデックスが不正です。");
+                    const i=n>0?n-1:vertices.length+n;if(i<0||i>=vertices.length)throw new Error("OBJの面インデックスが範囲外です。");return i;
+                });
+                for(let i=1;i<ids.length-1;i++){faces.push([ids[0],ids[i],ids[i+1]]);if(faces.length>MAX_FACES)throw new Error("三角形数が上限を超えています。");}
+            }
+        }
+        if(!vertices.length||!faces.length)throw new Error("OBJに頂点または面がありません。");
+        return {vertices,faces};
+    }
+
+    async function importMeshes(fileList){
+        let count=0;
+        for(const file of Array.from(fileList||[])){
+            try{
+                if(file.size>100*1024*1024)throw new Error("1ファイル100 MB以下にしてください。");
+                const ext=file.name.split(".").pop().toLowerCase();if(!["stl","obj"].includes(ext))throw new Error("STL / OBJ形式のみ対応しています。");
+                const buffer=await file.arrayBuffer();
+                const mesh=ext==="obj"?parseObj(new TextDecoder().decode(buffer)):(parseBinaryStl(buffer)||parseAsciiStl(new TextDecoder().decode(buffer)));
+                models.push({id:newId(),name:file.name,profile:"mesh",parametric:false,mesh,offset:[0,0,0],joint:{type:"fixed",value:0},history:[]});activeId=models[models.length-1].id;count++;
+            }catch(error){status(file.name+" の読込に失敗しました: "+error.message,true);}
+        }
+        if(count){invalidateReport();renderAll();status(count+"件のメッシュをブラウザー内に読み込みました。単位情報がないため座標はmmとして扱います。");}
+    }
+
+    function finite3(values){return Array.isArray(values)&&values.length===3&&values.every(v=>Number.isFinite(v)&&Math.abs(v)<=1000000);}
+    function readJoint(joint){
+        if(joint===undefined)return {type:"fixed",value:0};
+        if(!joint||!["fixed","revolute","slider"].includes(joint.type))throw new Error("プロジェクトの関節タイプが不正です。");
+        const value=joint.type==="fixed"?0:Number(joint.value);
+        if(!Number.isFinite(value)||Math.abs(value)>(joint.type==="slider"?1000000:360000))throw new Error("プロジェクトの関節値が許容範囲外です。");
+        return {type:joint.type,value};
+    }
+
+    function readDisplayColor(color){
+        if(color===undefined)return undefined;
+        if(typeof color!=="string"||!/^#[0-9a-f]{6}$/i.test(color))throw new Error("モデルの表示色が不正です。");
+        return color;
+    }
+
+    function readBottomViewHidden(value){
+        if(value===undefined)return false;
+        if(typeof value!=="boolean")throw new Error("下面ビューの表示設定が不正です。");
+        return value;
+    }
+
+    function validateMesh(mesh){
+        if(!mesh||!Array.isArray(mesh.vertices)||!Array.isArray(mesh.faces))throw new Error("プロジェクトのメッシュ形式が不正です。");
+        if(!mesh.vertices.length||mesh.vertices.length>150000||!mesh.faces.length||mesh.faces.length>MAX_FACES)throw new Error("プロジェクトのメッシュが上限を超えています。");
+        const vertices=mesh.vertices.map(p=>{if(!finite3(p))throw new Error("メッシュ頂点に不正な値があります。");return p.map(Number);});
+        const faces=mesh.faces.map(f=>{if(!Array.isArray(f)||f.length!==3||!f.every(i=>Number.isInteger(i)&&i>=0&&i<vertices.length))throw new Error("メッシュ面の頂点参照が不正です。");return f.slice();});
+        return {vertices,faces};
+    }
+
+    async function openProject(file){
+        if(file.size>150*1024*1024)throw new Error("プロジェクトは150 MB以下にしてください。");
+        const data=JSON.parse(await file.text());
+        if(data.format!=="nxal-cad-project"||data.version!==1||!Array.isArray(data.models)||!data.models.length||data.models.length>MAX_PROJECT_MODELS)throw new Error("未対応または不正なプロジェクト形式です。");
+        const loaded=data.models.map(item=>{
+            if(!item||typeof item.name!=="string"||!item.name.trim()||item.name.length>120||!finite3(item.offset))throw new Error("モデル名または配置情報が不正です。");
+            if(item.parametric){
+                if(!["plate","box","cylinder"].includes(item.profile)||!Array.isArray(item.dimensions)||item.dimensions.length!==3||!item.dimensions.every(n=>Number.isFinite(n)&&n>0&&n<=100000))throw new Error("パラメトリック寸法が不正です。");
+                const cornerRadius=item.cornerRadius===undefined?0:Number(item.cornerRadius);
+                if(!Number.isFinite(cornerRadius)||cornerRadius<0||cornerRadius>=Math.min(item.dimensions[0],item.dimensions[1])/2)throw new Error("コーナーRが形状寸法と合いません。");
+                const model={id:newId(),name:item.name,profile:item.profile,parametric:true,dimensions:item.dimensions.slice(),holeDiameter:item.holeDiameter===undefined?0:Number(item.holeDiameter),cornerRadius,displayColor:readDisplayColor(item.displayColor),hideInBottomView:readBottomViewHidden(item.hideInBottomView),offset:item.offset.slice(),joint:readJoint(item.joint),history:[]};
+                if(!Number.isFinite(model.holeDiameter)||model.holeDiameter<0||(model.profile==="plate"&&model.holeDiameter>=Math.min(model.dimensions[0],model.dimensions[1])))throw new Error("穴径が形状寸法と合いません。");
+                if(item.history!==undefined&&!Array.isArray(item.history))throw new Error("プロジェクトのフィーチャー履歴が不正です。");
+                if(Array.isArray(item.history)){
+                    if(item.history.length>20)throw new Error("プロジェクトのフィーチャー履歴が上限を超えています。");
+                    model.history=item.history.map(s=>{
+                        if(!s||!["plate","box","cylinder"].includes(s.profile)||!Array.isArray(s.dimensions)||s.dimensions.length!==3||!s.dimensions.every(n=>Number.isFinite(n)&&n>0&&n<=100000))throw new Error("プロジェクトのフィーチャー履歴が不正です。");
+                        const hole=s.holeDiameter===undefined?0:Number(s.holeDiameter),historyCorner=s.cornerRadius===undefined?0:Number(s.cornerRadius);
+                        if(!Number.isFinite(hole)||hole<0||(s.profile==="plate"&&hole>=Math.min(s.dimensions[0],s.dimensions[1])))throw new Error("履歴内の穴径が不正です。");
+                        if(!Number.isFinite(historyCorner)||historyCorner<0||historyCorner>=Math.min(s.dimensions[0],s.dimensions[1])/2)throw new Error("履歴内のコーナーRが不正です。");
+                        return {profile:s.profile,name:typeof s.name==="string"?s.name.slice(0,120):model.name,dimensions:s.dimensions.slice(),holeDiameter:hole,cornerRadius:historyCorner};
+                    });
+                }
+                model.mesh=buildMesh(model);return model;
+            }
+            if(item.generated!==undefined&&typeof item.generated!=="boolean")throw new Error("モデルの生成フラグが不正です。");
+            return {id:newId(),name:item.name,profile:"mesh",parametric:false,generated:item.generated===true,displayColor:readDisplayColor(item.displayColor),hideInBottomView:readBottomViewHidden(item.hideInBottomView),mesh:validateMesh(item.mesh),offset:item.offset.slice(),joint:readJoint(item.joint),history:[]};
+        });
+        loaded[0].joint={type:"fixed",value:0};
+        models.splice(0,models.length,...loaded);activeId=models[0].id;invalidateReport();renderAll();status("プロジェクトを読み込みました（"+models.length+"モデル）。");
+    }
+
+    function saveProject(){
+        const data={format:"nxal-cad-project",version:1,units:"mm",savedAt:new Date().toISOString(),models:models.map(m=>({name:m.name,profile:m.profile,parametric:m.parametric,generated:m.generated||undefined,displayColor:m.displayColor,hideInBottomView:m.hideInBottomView||undefined,dimensions:m.parametric?m.dimensions:undefined,holeDiameter:m.parametric?m.holeDiameter:undefined,cornerRadius:m.parametric?m.cornerRadius:undefined,offset:m.offset,joint:m.joint,history:m.parametric?m.history:undefined,mesh:m.parametric?undefined:m.mesh}))};
+        download(new Blob([JSON.stringify(data)],{type:"application/json"}),"nxal-design.json");status("ローカルプロジェクトをJSONで保存しました。");
+    }
+
+    function worldVertices(model){
+        const joint=model.joint||{type:"fixed",value:0},angle=joint.type==="revolute"?joint.value*Math.PI/180:0,cos=Math.cos(angle),sin=Math.sin(angle);
+        return model.mesh.vertices.map(p=>{
+            let x=p[0],y=p[1],z=p[2];
+            if(joint.type==="revolute"){const rotatedX=x*cos-y*sin; y=x*sin+y*cos;x=rotatedX;}
+            if(joint.type==="slider")z+=joint.value;
+            return [x+model.offset[0],y+model.offset[1],z+model.offset[2]];
+        });
+    }
+
+    function shadeColor(color,intensity){
+        const factor=Math.max(.56,Math.min(1.22,intensity));
+        const channels=[1,3,5].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(color.slice(i,i+2),16)*factor))));
+        return "#"+channels.map(value=>value.toString(16).padStart(2,"0")).join("");
+    }
+
+    function drawScene(canvas,scene,angle,pitchAngle,scaleFactor){
+        const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
+        const dpr=Math.max(1,window.devicePixelRatio||1);canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+        const c=canvas.getContext("2d");c.setTransform(dpr,0,0,dpr,0,0);const w=rect.width,h=rect.height;c.clearRect(0,0,w,h);
+        if(!scene.length)return;
+        const all=[],world=scene.map(worldVertices);
+        const mins=[Infinity,Infinity,Infinity],maxs=[-Infinity,-Infinity,-Infinity];
+        world.forEach(vs=>vs.forEach(p=>p.forEach((v,i)=>{mins[i]=Math.min(mins[i],v);maxs[i]=Math.max(maxs[i],v);})));
+        const center=mins.map((v,i)=>(v+maxs[i])/2),maxSize=Math.max(maxs[0]-mins[0],maxs[1]-mins[1],maxs[2]-mins[2],1e-6);
+        const scale=Math.min(w,h)*.63/maxSize*scaleFactor,cy=Math.cos(angle),sy=Math.sin(angle),cx=Math.cos(pitchAngle),sx=Math.sin(pitchAngle);
+        const colors=["#c9ced6","#b7c1cc","#d0c8b9","#b8c9bd","#c6bdcf","#d2c2bd"];
+        world.forEach((vertices,mi)=>{
+            const transformed=vertices.map(p=>{const x=p[0]-center[0],y=p[1]-center[1],z=p[2]-center[2],py=y*cx-z*sx,pz=y*sx+z*cx;return [x*cy+pz*sy,py,-x*sy+pz*cy];});
+            const edges=new Map();
+            scene[mi].mesh.faces.forEach(face=>{
+                const a=transformed[face[0]],b=transformed[face[1]],d=transformed[face[2]];if(!a||!b||!d)return;
+                const ab=b.map((v,i)=>v-a[i]),ad=d.map((v,i)=>v-a[i]),normal=[ab[1]*ad[2]-ab[2]*ad[1],ab[2]*ad[0]-ab[0]*ad[2],ab[0]*ad[1]-ab[1]*ad[0]],length=Math.hypot(...normal)||1;
+                for(let i=0;i<3;i++)normal[i]/=length;
+                const faceEdges=[];
+                [[face[0],face[1],a,b],[face[1],face[2],b,d],[face[2],face[0],d,a]].forEach(([from,to,p,q])=>{
+                    const key=from<to?from+":"+to:to+":"+from;
+                    let edge=edges.get(key);
+                    if(!edge){edge={points:[p,q],normals:[],crease:false};edges.set(key,edge);}
+                    edge.normals.push(normal);faceEdges.push(edge);
+                });
+                const baseColor=scene[mi].displayColor||colors[mi%colors.length];
+                all.push({p:[a,b,d],z:(a[2]+b[2]+d[2])/3,color:shadeColor(baseColor,.72+Math.abs(normal[2])*.34),edges:faceEdges});
+            });
+            edges.forEach(edge=>{
+                if(edge.normals.length<2){edge.crease=true;return;}
+                const n=edge.normals;
+                edge.crease=Math.abs(n[0][0]*n[1][0]+n[0][1]*n[1][1]+n[0][2]*n[1][2])<.96;
+            });
+        });
+        all.sort((a,b)=>a.z-b.z);
+        all.forEach(t=>{
+            c.beginPath();c.moveTo(w/2+t.p[0][0]*scale,h/2-t.p[0][1]*scale);c.lineTo(w/2+t.p[1][0]*scale,h/2-t.p[1][1]*scale);c.lineTo(w/2+t.p[2][0]*scale,h/2-t.p[2][1]*scale);c.closePath();
+            c.globalAlpha=.98;c.fillStyle=t.color;c.fill();
+            t.edges.forEach(edge=>{
+                if(!edge.crease)return;
+                c.beginPath();c.moveTo(w/2+edge.points[0][0]*scale,h/2-edge.points[0][1]*scale);c.lineTo(w/2+edge.points[1][0]*scale,h/2-edge.points[1][1]*scale);
+                c.globalAlpha=.72;c.strokeStyle="#26303c";c.lineWidth=.8;c.stroke();
+            });
+        });
+        c.globalAlpha=1;c.fillStyle="#b6c8dc";c.font="10px sans-serif";c.textAlign="left";
+        c.fillText(scene.length+" body"+(scene.length===1?"":"s")+" · "+scene.reduce((n,m)=>n+m.mesh.faces.length,0).toLocaleString()+" triangles",12,h-13);
+    }
+
+    function drawSketch(canvas,model){
+        const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
+        const dpr=Math.max(1,window.devicePixelRatio||1);canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+        const c=canvas.getContext("2d");c.setTransform(dpr,0,0,dpr,0,0);
+        const w=rect.width,h=rect.height;c.fillStyle="#202936";c.fillRect(0,0,w,h);
+        c.strokeStyle="rgba(176,197,221,.09)";c.lineWidth=1;
+        for(let x=w/2%24;x<w;x+=24){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();}
+        for(let y=h/2%24;y<h;y+=24){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+        c.strokeStyle="rgba(91,151,226,.7)";c.beginPath();c.moveTo(w/2,0);c.lineTo(w/2,h);c.moveTo(0,h/2);c.lineTo(w,h/2);c.stroke();
+        if(!model||!model.parametric){
+            c.fillStyle="#c7d2df";c.font="13px sans-serif";c.textAlign="center";c.fillText("寸法編集できるパラメトリック形状を選択してください",w/2,h/2+6);return;
+        }
+        const width=model.dimensions[0],depth=model.profile==="cylinder"?width:model.dimensions[1];
+        const scale=Math.min(w*.58/width,h*.56/depth)*zoom,sw=width*scale,sh=depth*scale,cx=w/2,cy=h/2;
+        c.fillStyle="rgba(100,157,231,.12)";c.strokeStyle="#8bbcff";c.lineWidth=2;
+        c.beginPath();
+        if(model.profile==="cylinder")c.ellipse(cx,cy,sw/2,sh/2,0,0,Math.PI*2);
+        else c.rect(cx-sw/2,cy-sh/2,sw,sh);
+        c.fill();c.stroke();
+        if(model.profile==="plate"&&model.holeDiameter>0){
+            c.beginPath();c.arc(cx,cy,model.holeDiameter*scale/2,0,Math.PI*2);c.fillStyle="#202936";c.fill();c.strokeStyle="#8bbcff";c.stroke();
+        }
+        c.strokeStyle="#91a2b7";c.fillStyle="#d0dbe8";c.font="11px sans-serif";c.textAlign="center";
+        c.beginPath();c.moveTo(cx-sw/2,cy+sh/2+20);c.lineTo(cx+sw/2,cy+sh/2+20);c.moveTo(cx-sw/2,cy+sh/2+15);c.lineTo(cx-sw/2,cy+sh/2+25);c.moveTo(cx+sw/2,cy+sh/2+15);c.lineTo(cx+sw/2,cy+sh/2+25);c.stroke();
+        c.fillText("X · "+width+" mm",cx,cy+sh/2+39);
+        if(model.profile!=="cylinder"){
+            c.save();c.translate(cx-sw/2-24,cy);c.rotate(-Math.PI/2);c.fillText("Y · "+depth+" mm",0,0);c.restore();
+        }else c.fillText("Ø "+width+" mm",cx,cy+5);
+        if(model.profile==="plate"&&model.holeDiameter>0){c.textAlign="left";c.fillText("Ø "+model.holeDiameter+" mm",cx+model.holeDiameter*scale/2+8,cy-5);}
+        c.textAlign="left";c.fillStyle="#bdcada";c.fillText("SKETCH · XY",12,h-14);
+    }
+
+    function draw(){
+        const model=selected();
+        $("viewportMode").textContent=sketchMode?"SKETCH · XY · mm":"3D VIEW · mm";
+        if(sketchMode)drawSketch($("cadCanvas"),model);else drawScene($("cadCanvas"),bottomViewEnabled?models.filter(item=>!item.hideInBottomView):models,yaw,pitch,zoom);
+    }
+    function setSketchMode(enabled){
+        sketchMode=enabled;$("startSketch").setAttribute("aria-pressed",String(enabled));$("startSketch").textContent=enabled?"3Dモデルへ戻る":"XYスケッチを表示";
+    }
+    function invalidateReport(){lastReport=null;$("saveReport").disabled=true;invalidateStrength();}
+
+    function invalidateStrength(){
+        strengthHasRun=false;
+        const results=$("strengthResults");
+        if(results){results.textContent="";card(results,"解析状態","形状または条件が変わりました。再計算してください。","warn");}
+    }
+
+    function renderModels(){
+        const list=$("modelList");list.textContent="";
+        models.forEach(model=>{
+            const row=document.createElement("div");row.className="model-row";
+            const name=document.createElement("button");name.type="button";name.className="model-name";name.textContent=model.name;name.title="選択してプロパティを編集";name.setAttribute("aria-pressed",String(model.id===activeId));
+            name.addEventListener("click",()=>{activeId=model.id;if(model.parametric)$("strengthModel").value=model.id;invalidateStrength();renderAll();});row.appendChild(name);
+            ["X","Y","Z"].forEach((axis,i)=>{
+                const label=document.createElement("label");label.className="axis-field";label.textContent=axis;
+                const input=document.createElement("input");input.type="number";input.step="1";input.value=model.offset[i];input.setAttribute("aria-label",model.name+" "+axis+"配置 (mm)");
+                input.addEventListener("change",()=>{const n=Number(input.value);if(!Number.isFinite(n)||Math.abs(n)>1000000){input.value=model.offset[i];status("配置には±1,000,000 mm以内の有限値を入力してください。",true);return;}model.offset[i]=n;invalidateReport();draw();renderModels();status("配置を更新しました。干渉候補を再検査してください。");});
+                label.appendChild(input);row.appendChild(label);
+            });
+            const remove=document.createElement("button");remove.type="button";remove.className="remove-model";remove.textContent="削除";remove.setAttribute("aria-label",model.name+"を削除");
+            remove.addEventListener("click",()=>{models.splice(models.indexOf(model),1);if(models.length)models[0].joint={type:"fixed",value:0};if(activeId===model.id)activeId=models.length?models[0].id:null;invalidateReport();renderAll();status("モデルを削除しました。");});
+            row.appendChild(remove);list.appendChild(row);
+        });
+    }
+
+    function profileTitle(profile){return profile==="plate"?"矩形スケッチ + 押し出し + 貫通穴":profile==="cylinder"?"円スケッチ + 360°回転":"矩形スケッチ + 押し出し";}
+
+    function renderTimeline(model){
+        const timeline=$("timeline");timeline.textContent="";
+        if(!model||!model.parametric){timeline.textContent=model&&model.generated?"CADワークベンチで作成したアセンブリ部品です。":"インポートしたメッシュは履歴を編集できません。";return;}
+        const features=model.profile==="cylinder"?[{title:"円スケッチ · XY平面",detail:"直径 "+model.dimensions[0]+" mm"},{title:"回転 · 360°",detail:"高さ "+model.dimensions[2]+" mm"}]:[{title:"矩形スケッチ · XY平面",detail:model.dimensions[0]+" × "+model.dimensions[1]+" mm"},{title:"押し出し · ソリッド",detail:"高さ "+model.dimensions[2]+" mm"}];
+        if(model.profile==="plate"&&model.holeDiameter>0)features.push({title:"穴 · 貫通",detail:"φ"+model.holeDiameter+" mm"});
+        if(model.cornerRadius>0)features.push({title:"スケッチフィレット · 角丸",detail:"R"+model.cornerRadius+" mm"});
+        model.history.slice(-5).forEach((s,i)=>features.push({title:"寸法変更 #"+(model.history.length-Math.min(5,model.history.length)+i+1),detail:profileTitle(s.profile),snapshot:s}));
+        features.forEach((feature,i)=>{
+            const row=document.createElement("div");row.className="feature-row";
+            const index=document.createElement("span");index.className="feature-index";index.textContent=feature.snapshot?"↶":String(i+1);
+            const copy=document.createElement("span");copy.className="feature-copy";const title=document.createElement("b");title.textContent=feature.title;copy.appendChild(title);copy.appendChild(document.createTextNode(feature.detail));row.appendChild(index);row.appendChild(copy);
+            if(feature.snapshot){const restore=document.createElement("button");restore.type="button";restore.textContent="適用";restore.addEventListener("click",()=>{model.profile=feature.snapshot.profile;model.dimensions=feature.snapshot.dimensions.slice();model.holeDiameter=feature.snapshot.holeDiameter;model.cornerRadius=feature.snapshot.cornerRadius||0;model.name=feature.snapshot.name;model.mesh=buildMesh(model);invalidateReport();renderAll();status("フィーチャー履歴を適用しました。");});row.appendChild(restore);}
+            timeline.appendChild(row);
+        });
+    }
+
+    function updateProfileFields(){
+        const profile=$("profileType").value,cylinder=profile==="cylinder";
+        $("yField").hidden=cylinder;$("holeField").hidden=profile!=="plate";$("cornerRadiusField").hidden=cylinder;
+        $("xField").firstChild.textContent=cylinder?"直径 (mm)":"幅 X (mm)";
+    }
+
+    function renderSketchConstraints(model){
+        const panel=$("sketchPanel"),list=$("constraintList");list.textContent="";
+        if(!model||!model.parametric){panel.hidden=true;return;}
+        panel.hidden=false;
+        const add=(name,value)=>{const row=document.createElement("div");row.className="constraint-row";const label=document.createElement("span");label.textContent=name;const result=document.createElement("b");result.textContent=value;row.appendChild(label);row.appendChild(result);list.appendChild(row);};
+        if(model.profile==="cylinder"){
+            add("円中心 ↔ 原点","一致");
+            add("駆動寸法 · 直径","Ø"+model.dimensions[0]+" mm");
+        }else{
+            add("矩形の辺","水平 2 · 垂直 2");
+            add("中心 ↔ 原点","固定");
+            add("駆動寸法 · X",model.dimensions[0]+" mm");
+            add("駆動寸法 · Y",model.dimensions[1]+" mm");
+            if(model.profile==="plate"&&model.holeDiameter>0){add("穴中心 ↔ 外形中心","同心");add("駆動寸法 · 穴径","Ø"+model.holeDiameter+" mm");}
+            if(model.cornerRadius>0)add("スケッチフィレット","R"+model.cornerRadius+" mm · 接線");
+        }
+        $("constraintState").textContent="完全拘束 · 自由度 0";
+    }
+
+    function renderJointControls(model){
+        const type=$("jointType"),value=$("jointValue"),root=!!model&&models[0]===model;
+        type.disabled=!model||root;value.disabled=!model||root;$("applyJoint").disabled=!model||root;
+        if(!model){$("assemblyNote").textContent="部品を作成または読み込んでください。";return;}
+        const joint=model.joint||{type:"fixed",value:0};type.value=root?"fixed":joint.type;value.value=root?0:joint.value;
+        $("assemblyNote").textContent=root?"この基準部品は固定されています。追加部品を選択すると関節を設定できます。":joint.type==="revolute"?"Z軸まわりの回転角を指定します。角度は部品原点を軸に適用します。":joint.type==="slider"?"Z方向のスライド量を指定します。配置オフセットに加算します。":"選択部品をアセンブリ基準に固定します。関節軸の解法や接触追跡は未対応です。";
+        updateJointValueLabel();
+    }
+
+    function updateJointValueLabel(){const type=$("jointType").value;$("jointValueField").firstChild.textContent=type==="revolute"?"回転角 (deg)":type==="slider"?"スライド量 (mm)":"関節値";}
+
+    function applyJoint(){
+        const model=selected();
+        if(!model){status("関節を適用する部品を選択してください。",true);return;}
+        if(models[0]===model){status("先頭部品はアセンブリ基準として固定されています。",true);return;}
+        const type=$("jointType").value,value=type==="fixed"?0:Number($("jointValue").value),limit=type==="slider"?1000000:360000;
+        if(!["fixed","revolute","slider"].includes(type)||!Number.isFinite(value)||Math.abs(value)>limit){status("関節値が許容範囲外です。",true);return;}
+        model.joint={type,value};invalidateReport();renderAll();status("部品の関節を適用しました。配置と干渉候補を再確認してください。");
+    }
+
+    function createLinearPattern(){
+        const source=selected(),count=Number($("patternCount").value),spacing=Number($("patternSpacing").value);
+        if(!source){status("パターン化する部品を選択してください。",true);return;}
+        if(!Number.isInteger(count)||count<2||count>8||!Number.isFinite(spacing)||spacing<=0||spacing>100000||models.length+count-1>MAX_PROJECT_MODELS){status("パターン数は2〜8、Xピッチは0より大きく100,000 mm以下、モデル総数は100以下にしてください。",true);return;}
+        const copies=[];
+        for(let i=1;i<count;i++){
+            const offset=source.offset.slice();offset[0]+=spacing*i;
+            if(Math.abs(offset[0])>1000000){status("パターン配置が±1,000,000 mmの上限を超えます。",true);return;}
+            const copy={...source,id:newId(),name:(source.name+" · "+(i+1)).slice(0,120),dimensions:source.parametric?source.dimensions.slice():undefined,offset,joint:{type:"fixed",value:0},history:source.parametric?source.history.map(s=>({...s,dimensions:s.dimensions.slice()})):[]};
+            copy.mesh=source.parametric?buildMesh(copy):source.mesh;
+            copies.push(copy);
+        }
+        models.push(...copies);invalidateReport();renderAll();status((copies.length+1)+"部品の直線パターンを作成しました。");
+    }
+
+    function renderProperties(){
+        const model=selected(),parametric=!!(model&&model.parametric);
+        $("selectedModel").textContent=model?model.name+(parametric?" · 寸法編集可能":model.generated?" · CAD部品メッシュ":" · 読込メッシュ"):"モデルがありません。新規作成または読込をしてください。";
+        ["partName","profileType","dimX","dimY","dimZ","holeDiameter","cornerRadius","applyDimensions","recordFeature"].forEach(id=>$(id).disabled=!parametric);
+        if(parametric){
+            $("partName").value=model.name;$("profileType").value=model.profile;
+            $("dimX").value=model.dimensions[0];$("dimY").value=model.dimensions[1];$("dimZ").value=model.dimensions[2];$("holeDiameter").value=model.holeDiameter||0;$("cornerRadius").value=model.cornerRadius||0;updateProfileFields();
+        }
+        renderTimeline(model);renderSketchConstraints(model);renderJointControls(model);renderStrengthModels();
+    }
+
+    function renderAll(){renderModels();renderProperties();draw();}
+
+    function readProperties(){
+        const profile=$("profileType").value,name=$("partName").value.trim()||"新しい部品";
+        const x=Number($("dimX").value),y=profile==="cylinder"?x:Number($("dimY").value),z=Number($("dimZ").value),hole=profile==="plate"?Number($("holeDiameter").value):0,corner=profile==="cylinder"?0:Number($("cornerRadius").value);
+        if(![x,y,z,hole,corner].every(Number.isFinite)||![x,y,z].every(v=>v>0&&v<=100000)||hole<0||hole>=Math.min(x,y)||corner<0||corner>=Math.min(x,y)/2)throw new Error("寸法は0より大きく100,000 mm以下、穴径は幅より小さく、コーナーRは短辺の半分未満にしてください。");
+        return {name,profile,dimensions:[x,y,z],holeDiameter:hole,cornerRadius:corner};
+    }
+
+    function applyDimensions(){
+        const model=selected();if(!model||!model.parametric)return;
+        try{const values=readProperties();Object.assign(model,values);model.mesh=buildMesh(model);invalidateReport();renderAll();status("形状を再生成しました。形状チェックと強度評価を更新してください。");}
+        catch(error){status(error.message,true);}
+    }
+
+    function recordFeature(){
+        const model=selected();if(!model||!model.parametric)return;
+        try{const values=readProperties();Object.assign(model,values);model.mesh=buildMesh(model);model.history.push({name:model.name,profile:model.profile,dimensions:model.dimensions.slice(),holeDiameter:model.holeDiameter,cornerRadius:model.cornerRadius});if(model.history.length>20)model.history.shift();invalidateReport();renderAll();status("現在のフィーチャー状態を履歴に記録しました。");}
+        catch(error){status(error.message,true);}
+    }
+
+    function addProfile(profile){
+        const label=profile==="cylinder"?"円柱":profile==="box"?"角丸ボックス":"穴付きプレート";
+        const model=createParametric(profile,label+" "+(models.length+1));
+        $("strengthModel").value=model.id;
+        setSketchMode(false);
+        invalidateReport();renderAll();status(model.name+"を作成しました。");
+    }
+
+    function rememberFeatureState(model){
+        model.history.push({name:model.name,profile:model.profile,dimensions:model.dimensions.slice(),holeDiameter:model.holeDiameter,cornerRadius:model.cornerRadius||0});
+        if(model.history.length>20)model.history.shift();
+    }
+
+    function applyQuickFeature(feature){
+        const model=selected();
+        if(!model||!model.parametric){status("フィーチャーを適用するパラメトリック形状を選択してください。",true);return;}
+        if(feature==="extrude"){setSketchMode(false);applyDimensions();return;}
+        rememberFeatureState(model);
+        if(feature==="hole"){
+            model.profile="plate";model.holeDiameter=model.holeDiameter||Math.min(10,Math.min(model.dimensions[0],model.dimensions[1])*.25);
+        }else if(feature==="fillet"){
+            if(model.profile==="cylinder"){model.profile="box";model.holeDiameter=0;}
+            model.cornerRadius=Math.min(4,Math.min(model.dimensions[0],model.dimensions[1])*.2);
+        }else if(feature==="revolve"){
+            const diameter=Math.min(model.dimensions[0],model.dimensions[1]);
+            model.profile="cylinder";model.dimensions=[diameter,diameter,model.dimensions[2]];model.holeDiameter=0;model.cornerRadius=0;
+        }
+        try{model.mesh=buildMesh(model);setSketchMode(false);invalidateReport();renderAll();status("フィーチャーを適用し、編集可能な履歴に元の状態を記録しました。");}
+        catch(error){status("フィーチャーを適用できません: "+error.message,true);}
+    }
+
+    function measure(model){
+        const vertices=model.mesh.vertices,faces=model.mesh.faces,min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity],edges=new Map();
+        vertices.forEach(p=>p.forEach((v,i)=>{min[i]=Math.min(min[i],v);max[i]=Math.max(max[i],v);}));
+        let area=0,volume=0,degenerate=0;
+        faces.forEach(face=>{
+            const a=vertices[face[0]],b=vertices[face[1]],c=vertices[face[2]];if(!a||!b||!c)return;
+            const u=b.map((v,i)=>v-a[i]),v=c.map((n,i)=>n-a[i]),cross=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],twice=Math.hypot(...cross);
+            if(twice<=1e-12)degenerate++;area+=twice/2;
+            volume+=(a[0]*(b[1]*c[2]-b[2]*c[1])+a[1]*(b[2]*c[0]-b[0]*c[2])+a[2]*(b[0]*c[1]-b[1]*c[0]))/6;
+            for(let i=0;i<3;i++){const p=pointKey(vertices[face[i]]),q=pointKey(vertices[face[(i+1)%3]]),key=p<q?p+"|"+q:q+"|"+p;edges.set(key,(edges.get(key)||0)+1);}
+        });
+        let boundary=0,nonManifold=0;edges.forEach(n=>{if(n===1)boundary++;else if(n!==2)nonManifold++;});
+        return {vertices:vertices.length,faces:faces.length,area,volume:Math.abs(volume),boundary,nonManifold,degenerate,min,max,size:max.map((v,i)=>v-min[i]),closed:boundary===0&&nonManifold===0&&degenerate===0};
+    }
+
+    function boundsFor(model){
+        const vertices=worldVertices(model),min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
+        vertices.forEach(p=>p.forEach((v,i)=>{min[i]=Math.min(min[i],v);max[i]=Math.max(max[i],v);}));
+        return {min,max};
+    }
+
+    function card(target,title,value,tone){
+        const el=document.createElement("div");el.className="result";const b=document.createElement("b");b.textContent=title;const s=document.createElement("span");s.textContent=value;if(tone)s.classList.add(tone);el.appendChild(b);el.appendChild(s);target.appendChild(el);
+    }
+
+    function runChecks(){
+        const geometry=$("geometryResults"),interference=$("interferenceResults");geometry.textContent="";interference.textContent="";
+        if(!models.length){card(geometry,"検査対象","形状を作成または読み込んでください","warn");return;}
+        const stats=models.map(measure),pairs=[];
+        for(let i=0;i<models.length;i++)for(let j=i+1;j<models.length;j++){
+            const a=boundsFor(models[i]),b=boundsFor(models[j]),overlap=a.min.map((v,k)=>Math.min(a.max[k],b.max[k])-Math.max(v,b.min[k]));
+            if(overlap.every(v=>v>1e-8))pairs.push({a:models[i].name,b:models[j].name,overlap});
+        }
+        const items=stats.map((s,i)=>{
+            const name=models[i].name;
+            card(geometry,"モデル",name);
+            card(geometry,"頂点 / 三角形",s.vertices.toLocaleString()+" / "+s.faces.toLocaleString());
+            card(geometry,"外接寸法",s.size.map(n=>n.toFixed(2)).join(" × ")+" mm");
+            card(geometry,"閉鎖性の簡易判定",s.closed?"境界・非多様体エッジ・退化面なし":"境界 "+s.boundary+" / 非多様体 "+s.nonManifold+" / 退化面 "+s.degenerate,s.closed?"ok":"warn");
+            card(geometry,"面積 / 体積参考値",s.area.toFixed(2)+" mm² / "+s.volume.toFixed(2)+" mm³");
+            return {name,vertices:s.vertices,triangles:s.faces,bounds_mm:s.size,surface_area_mm2:s.area,volume_mm3:s.volume,closed_by_edge_incidence:s.closed,boundary_edges:s.boundary,non_manifold_edges:s.nonManifold,degenerate_triangles:s.degenerate};
+        });
+        card(interference,"干渉候補",pairs.length?pairs.length+"組（AABB重なり）":models.length<2?"比較には2モデル以上必要です":"AABBの重なりはありません",pairs.length?"warn":"ok");
+        pairs.forEach(p=>card(interference,p.a+" × "+p.b,"範囲重なり "+p.overlap.map(v=>v.toFixed(2)).join(" × ")+" mm","warn"));
+        lastReport={format:"nxal-geometry-report",version:1,generated_at:new Date().toISOString(),units:"mm",interference_method:"axis-aligned bounding boxes; candidate pairs only",models:items,interference_candidates:pairs};
+        $("saveReport").disabled=false;status("形状チェックが完了しました。干渉候補はAABBによる一次抽出です。");
+    }
+
+    function renderStrengthModels(){
+        const select=$("strengthModel"),previous=select.value;select.textContent="";
+        models.filter(m=>m.parametric).forEach(model=>{const option=document.createElement("option");option.value=model.id;option.textContent=model.name;select.appendChild(option);});
+        if(Array.from(select.options).some(o=>o.value===previous))select.value=previous;
+        else if(selected()&&selected().parametric)select.value=selected().id;
+        const available=select.options.length>0;
+        ["runStrength","strengthModel","material","elasticModulus","yieldStrength","tipLoad","requiredSafety"].forEach(id=>$(id).disabled=!available&&id!=="tipLoad"&&id!=="requiredSafety");
+        if(!available&&!strengthHasRun){$("strengthResults").textContent="パラメトリック形状を作成すると、強度の一次評価が利用できます。";}
+    }
+
+    const MATERIALS={steel:[210000,250],aluminum:[69000,276],stainless:[193000,205]};
+    $("material").addEventListener("change",()=>{
+        const values=MATERIALS[$("material").value];$("elasticModulus").value=values[0];$("yieldStrength").value=values[1];
+        invalidateStrength();
+    });
+    ["elasticModulus","yieldStrength","tipLoad","requiredSafety"].forEach(id=>$(id).addEventListener("change",invalidateStrength));
+
+    function runStrength(){
+        const model=models.find(m=>m.id===$("strengthModel").value);
+        if(!model){$("strengthResults").textContent="評価にはパラメトリック形状が必要です。";return;}
+        const [length,b,h]=model.profile==="cylinder"?[model.dimensions[2],model.dimensions[0],model.dimensions[0]]:[model.dimensions[0],model.dimensions[1],model.dimensions[2]];
+        const force=Number($("tipLoad").value),E=Number($("elasticModulus").value),yieldMpa=Number($("yieldStrength").value),required=Number($("requiredSafety").value);
+        if(![length,b,h,force,E,yieldMpa,required].every(Number.isFinite)||![length,b,h,force,E,yieldMpa,required].every(v=>v>0)){status("寸法・荷重・材料値・目標安全率には0より大きい有限値を入力してください。",true);return;}
+        const I=model.profile==="cylinder"?Math.PI*Math.pow(b,4)/64:b*Math.pow(h,3)/12;
+        const sectionModulus=model.profile==="cylinder"?Math.PI*Math.pow(b,3)/32:b*h*h/6;
+        const moment=force*length,stress=moment/sectionModulus,deflection=force*Math.pow(length,3)/(3*E*I),safety=yieldMpa/stress,utilization=100/safety;
+        if(![I,sectionModulus,moment,stress,deflection,safety,utilization].every(Number.isFinite)){status("入力値が大きすぎるため、有限の解析結果を計算できません。",true);return;}
+        const passed=safety>=required,results=$("strengthResults");results.textContent="";
+        card(results,"モデル / 理想化断面",model.name+" / "+(model.profile==="cylinder"?"円形":"矩形"));
+        card(results,"最大曲げ応力",new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:3}).format(stress)+" MPa",passed?"ok":"warn");
+        card(results,"先端たわみ",new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:3}).format(deflection)+" mm");
+        card(results,"降伏耐力に対する安全率",new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:3}).format(safety)+" ×",passed?"ok":"bad");
+        card(results,"耐力の利用率",new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:3}).format(utilization)+" %",passed?"ok":"warn");
+        const verdict=document.createElement("div");verdict.className="strength-status "+(passed?"pass":"fail");verdict.textContent=passed?"入力した目標安全率 "+required.toFixed(1)+" を満たす概算です。":"入力した目標安全率 "+required.toFixed(1)+" を下回る概算です。断面・材料・荷重条件を見直してください。";results.appendChild(verdict);
+        strengthHasRun=true;status("梁理論による概算が完了しました。穴・切欠き・接合部の局所応力は含まれません。");
+    }
+
+    function download(blob,name){
+        const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
+    }
+
+    function exportStl(){
+        const model=selected();if(!model){status("STL出力する形状を選択してください。",true);return;}
+        const n=model.mesh.faces.length,buffer=new ArrayBuffer(84+n*50),view=new DataView(buffer),head=new TextEncoder().encode(("NX Automation Labs · "+model.name).slice(0,80));
+        new Uint8Array(buffer,0,head.length).set(head);view.setUint32(80,n,true);
+        const vertices=worldVertices(model);
+        model.mesh.faces.forEach((face,i)=>{
+            const p=face.map(k=>vertices[k]),ab=p[1].map((v,j)=>v-p[0][j]),ac=p[2].map((v,j)=>v-p[0][j]);
+            const normal=[ab[1]*ac[2]-ab[2]*ac[1],ab[2]*ac[0]-ab[0]*ac[2],ab[0]*ac[1]-ab[1]*ac[0]],len=Math.hypot(...normal)||1,base=84+i*50;
+            normal.forEach((v,j)=>view.setFloat32(base+j*4,v/len,true));p.flat().forEach((v,j)=>view.setFloat32(base+12+j*4,v,true));view.setUint16(base+48,0,true);
+        });
+        download(new Blob([buffer],{type:"model/stl"}),model.name.replace(/\.[^.]+$/,"")+".stl");status("選択モデルをSTL出力しました。");
+    }
+
+    function saveReport(){
+        if(!lastReport){status("先に形状検査を実行してください。",true);return;}
+        download(new Blob([JSON.stringify(lastReport,null,2)],{type:"application/json"}),"geometry-check-report.json");
+    }
+
+    $("addPlate").addEventListener("click",()=>addProfile("plate"));
+    $("addBox").addEventListener("click",()=>addProfile("box"));
+    $("addCylinder").addEventListener("click",()=>addProfile("cylinder"));
+    $("openMesh").addEventListener("click",()=>$("meshFiles").click());
+    $("meshFiles").addEventListener("change",e=>{importMeshes(e.target.files);e.target.value="";});
+    $("openProject").addEventListener("click",()=>$("projectFile").click());
+    $("projectFile").addEventListener("change",async e=>{const file=e.target.files[0];e.target.value="";if(!file)return;try{await openProject(file);}catch(error){status("プロジェクトを開けません: "+error.message,true);}});
+    $("saveProject").addEventListener("click",()=>models.length?saveProject():status("保存するモデルがありません。",true));
+    $("exportStl").addEventListener("click",exportStl);
+    $("applyDimensions").addEventListener("click",applyDimensions);
+    $("recordFeature").addEventListener("click",recordFeature);
+    $("applyJoint").addEventListener("click",applyJoint);
+    $("jointType").addEventListener("change",updateJointValueLabel);
+    $("createPattern").addEventListener("click",createLinearPattern);
+    $("profileType").addEventListener("change",updateProfileFields);
+    $("partName").addEventListener("change",()=>{const m=selected();if(m&&m.parametric){m.name=$("partName").value.trim()||"新しい部品";invalidateReport();renderAll();}});
+    $("runChecks").addEventListener("click",runChecks);
+    $("saveReport").addEventListener("click",saveReport);
+    $("runStrength").addEventListener("click",runStrength);
+    $("strengthModel").addEventListener("change",()=>{if(strengthHasRun)runStrength();});
+    document.querySelectorAll("[data-command-tab]").forEach(tab=>tab.addEventListener("click",()=>{
+        document.querySelectorAll("[data-command-tab]").forEach(item=>item.setAttribute("aria-selected",String(item===tab)));
+        document.querySelectorAll("[data-command-panel]").forEach(panel=>{panel.hidden=panel.dataset.commandPanel!==tab.dataset.commandTab;});
+    }));
+    $("startSketch").addEventListener("click",()=>{
+        const model=selected();
+        if(!model||!model.parametric){status("スケッチ表示には寸法編集できるパラメトリック形状を選択してください。",true);return;}
+        setSketchMode(!sketchMode);draw();
+        status(sketchMode?"選択形状のXYプロファイルを寸法付きで表示しています。寸法は右側のプロパティから編集できます。":"3Dモデル表示に戻りました。");
+    });
+    $("quickExtrude").addEventListener("click",()=>applyQuickFeature("extrude"));
+    $("quickRevolve").addEventListener("click",()=>applyQuickFeature("revolve"));
+    $("quickHole").addEventListener("click",()=>applyQuickFeature("hole"));
+    $("quickFillet").addEventListener("click",()=>applyQuickFeature("fillet"));
+    $("showAssembly").addEventListener("click",()=>$("assemblyControls").scrollIntoView({behavior:"smooth",block:"center"}));
+    $("createPatternRibbon").addEventListener("click",createLinearPattern);
+    $("fitView").addEventListener("click",()=>{bottomViewEnabled=false;zoom=1;yaw=-.62;pitch=-.58;setSketchMode(false);draw();});
+    $("isoView").addEventListener("click",()=>{bottomViewEnabled=false;yaw=-.62;pitch=-.58;setSketchMode(false);draw();});
+    $("topView").addEventListener("click",()=>{bottomViewEnabled=false;yaw=0;pitch=0;setSketchMode(false);draw();});
+    $("bottomView").addEventListener("click",()=>{bottomViewEnabled=true;yaw=-.62;pitch=1.12;setSketchMode(false);draw();});
+    $("solidView").addEventListener("click",()=>{bottomViewEnabled=false;setSketchMode(false);draw();});
+    $("homeView").addEventListener("click",()=>{bottomViewEnabled=false;yaw=-.62;pitch=-.58;zoom=1;setSketchMode(false);draw();});
+    $("zoomIn").addEventListener("click",()=>{zoom=Math.min(4,zoom*1.2);draw();});
+    $("zoomOut").addEventListener("click",()=>{zoom=Math.max(.35,zoom/1.2);draw();});
+    $("cadCanvas").addEventListener("pointerdown",e=>{if(sketchMode)return;dragging=true;pointer=[e.clientX,e.clientY];e.currentTarget.setPointerCapture(e.pointerId);});
+    $("cadCanvas").addEventListener("pointermove",e=>{if(!dragging||!pointer)return;yaw+=(e.clientX-pointer[0])*.009;pitch=Math.max(-1.45,Math.min(1.45,pitch+(e.clientY-pointer[1])*.009));pointer=[e.clientX,e.clientY];draw();});
+    $("cadCanvas").addEventListener("pointerup",()=>{dragging=false;pointer=null;});
+    $("cadCanvas").addEventListener("pointercancel",()=>{dragging=false;pointer=null;});
+    $("cadCanvas").addEventListener("wheel",e=>{e.preventDefault();zoom=Math.max(.35,Math.min(4,zoom*(e.deltaY<0?1.1:.9)));draw();},{passive:false});
+    $("cadCanvas").addEventListener("dragover",e=>e.preventDefault());
+    $("cadCanvas").addEventListener("drop",e=>{e.preventDefault();importMeshes(e.dataTransfer.files);});
+    window.addEventListener("resize",()=>{draw();drawHero();});
+    $("demoToggle").addEventListener("click",()=>{
+        demoPlaying=!demoPlaying;$("demoToggle").textContent=demoPlaying?"一時停止":"再生";$("demoToggle").setAttribute("aria-pressed",String(!demoPlaying));
+        if(demoPlaying&&!demoFrame){demoTimer=performance.now();demoFrame=requestAnimationFrame(animateDemo);}else if(!demoPlaying&&demoFrame){cancelAnimationFrame(demoFrame);demoFrame=0;}
+    });
+
+    function makeCenteredBoxMesh(width,depth,height){
+        const mesh=makeBoxMesh(width,depth,height);
+        return {...mesh,vertices:mesh.vertices.map(([x,y,z])=>[x,y,z-height/2])};
+    }
+
+    function makeAxisYMesh(diameter,width){
+        const mesh=makeCylinderMesh(diameter,width);
+        return {...mesh,vertices:mesh.vertices.map(([x,y,z])=>[x,z-width/2,-y])};
+    }
+
+    function makeAxisXMesh(diameter,length){
+        const mesh=makeCylinderMesh(diameter,length);
+        return {...mesh,vertices:mesh.vertices.map(([x,y,z])=>[z-length/2,x,y])};
+    }
+
+    function makeCompositeMesh(parts){
+        const vertices=[],faces=[];
+        parts.forEach(part=>{
+            const base=vertices.length,offset=part.offset||[0,0,0];
+            part.mesh.vertices.forEach(p=>vertices.push([p[0]+offset[0],p[1]+offset[1],p[2]+offset[2]]));
+            part.mesh.faces.forEach(face=>faces.push(face.map(index=>index+base)));
+        });
+        return {vertices,faces};
+    }
+
+    function makeExtrudedOutlineMesh(points,height){
+        const count=points.length,vertices=points.map(([x,y])=>[x,y,0]).concat(points.map(([x,y])=>[x,y,height])),faces=[];
+        const bottomCenter=vertices.length;vertices.push([0,0,0]);
+        const topCenter=vertices.length;vertices.push([0,0,height]);
+        for(let i=0;i<count;i++){
+            const next=(i+1)%count;
+            faces.push([bottomCenter,next,i],[topCenter,count+i,count+next],[i,next,count+next],[i,count+next,count+i]);
+        }
+        return {vertices,faces};
+    }
+
+    function makeGearMesh(radius,teeth,height){
+        const points=[];
+        for(let i=0;i<teeth*4;i++){
+            const phase=i%4,angle=i*Math.PI*2/(teeth*4)-Math.PI/2;
+            const r=phase===1||phase===2?radius:radius*.82;
+            points.push([Math.cos(angle)*r,Math.sin(angle)*r]);
+        }
+        return makeExtrudedOutlineMesh(points,height);
+    }
+
+    function makeTreadTireMesh(diameter,width){
+        const radius=diameter/2,segments=48;
+        const profile=[[-.5,.76],[-.46,.88],[-.34,.99],[-.25,1.02],[.25,1.02],[.34,.99],[.46,.88],[.5,.76],[.41,.68],[-.41,.68]];
+        const vertices=[],faces=[];
+        profile.forEach(([y,factor],ring)=>{
+            for(let i=0;i<segments;i++){
+                const angle=i*Math.PI*2/segments;
+                const tread=ring>=2&&ring<=5&&i%6===0?-.75:0;
+                const r=radius*factor+tread;
+                vertices.push([Math.cos(angle)*r,y*width,Math.sin(angle)*r]);
+            }
+        });
+        for(let ring=0;ring<profile.length;ring++){
+            const nextRing=(ring+1)%profile.length;
+            for(let i=0;i<segments;i++){
+                const next=(i+1)%segments,a=ring*segments+i,b=ring*segments+next,c=nextRing*segments+next,d=nextRing*segments+i;
+                faces.push([a,b,c],[a,c,d]);
+            }
+        }
+        return {vertices,faces};
+    }
+
+    function makeWheelRingMesh(innerRadius,outerRadius,width){
+        const segments=40,profile=[[-width/2,innerRadius],[-width/2,outerRadius],[width/2,outerRadius],[width/2,innerRadius]],vertices=[],faces=[];
+        profile.forEach(([y,radius])=>{
+            for(let i=0;i<segments;i++){
+                const angle=i*Math.PI*2/segments;
+                vertices.push([Math.cos(angle)*radius,y,Math.sin(angle)*radius]);
+            }
+        });
+        for(let ring=0;ring<profile.length;ring++){
+            const nextRing=(ring+1)%profile.length;
+            for(let i=0;i<segments;i++){
+                const next=(i+1)%segments,a=ring*segments+i,b=ring*segments+next,c=nextRing*segments+next,d=nextRing*segments+i;
+                faces.push([a,b,c],[a,c,d]);
+            }
+        }
+        return {vertices,faces};
+    }
+
+    function makeWheelSpokesMesh(count,innerRadius,outerRadius,width){
+        const parts=[];
+        for(let i=0;i<count;i++){
+            const angle=i*Math.PI*2/count,points=[
+                [innerRadius*Math.cos(angle-.22),innerRadius*Math.sin(angle-.22)],
+                [outerRadius*Math.cos(angle-.16),outerRadius*Math.sin(angle-.16)],
+                [outerRadius*Math.cos(angle+.2),outerRadius*Math.sin(angle+.2)],
+                [innerRadius*Math.cos(angle+.32),innerRadius*Math.sin(angle+.32)]
+            ];
+            const extruded=makeExtrudedOutlineMesh(points,width);
+            parts.push({mesh:{vertices:extruded.vertices.map(([x,z,y])=>[x,y-width/2,z]),faces:extruded.faces}});
+        }
+        return makeCompositeMesh(parts);
+    }
+
+    function makeBodyShellMesh(sections){
+        const vertices=[],faces=[],sectionSize=7;
+        sections.forEach(([x,halfWidth,base,roof])=>{
+            const outline=[[-halfWidth,base],[-halfWidth,base+2],[-halfWidth*.76,roof-1],[0,roof],[halfWidth*.76,roof-1],[halfWidth,base+2],[halfWidth,base]];
+            outline.forEach(([y,z])=>vertices.push([x,y,z]));
+        });
+        for(let section=0;section<sections.length-1;section++){
+            for(let i=0;i<sectionSize;i++){
+                const next=(i+1)%sectionSize,a=section*sectionSize+i,b=section*sectionSize+next,c=(section+1)*sectionSize+next,d=(section+1)*sectionSize+i;
+                faces.push([a,b,c],[a,c,d]);
+            }
+        }
+        [0,sections.length-1].forEach((section,end)=>{
+            const center=vertices.length,points=vertices.slice(section*sectionSize,(section+1)*sectionSize);
+            vertices.push(points.reduce((sum,p)=>[sum[0]+p[0]/sectionSize,sum[1]+p[1]/sectionSize,sum[2]+p[2]/sectionSize],[0,0,0]));
+            for(let i=0;i<sectionSize;i++){
+                const next=(i+1)%sectionSize;
+                faces.push(end===0?[center,section*sectionSize+next,section*sectionSize+i]:[center,section*sectionSize+i,section*sectionSize+next]);
+            }
+        });
+        return {vertices,faces};
+    }
+
+    function makeMini4wdScene(stage){
+        const scene=[],fixed={type:"fixed",value:0};
+        const add=(name,mesh,offset,color,hideInBottomView=false)=>scene.push({id:name,name,mesh,offset,joint:fixed,displayColor:color,hideInBottomView});
+        if(stage>=1){
+            add("R-01 レーシングシャーシ",makePlateMesh(104,42,5,0,5),[0,0,4],"#303a45");
+            const undertray=[
+                {mesh:makePlateMesh(82,12,2,0,3),offset:[0,-10,0]},
+                {mesh:makePlateMesh(82,12,2,0,3),offset:[0,10,0]}
+            ];
+            add("カーボンアンダートレイ",makeCompositeMesh(undertray),[0,0,1.5],"#171e27");
+            const rails=[-1,1].map(side=>({mesh:makeCenteredBoxMesh(82,2.4,3),offset:[-1,side*17,9]}));
+            [-1,1].forEach(side=>rails.push({mesh:makeCenteredBoxMesh(2.4,30,3),offset:[-37,side*6,9]}));
+            add("バッテリーガイド・補強リブ",makeCompositeMesh(rails),[0,0,0],"#788590");
+            add("単3セル × 2",makeCompositeMesh([-1,1].map(side=>({mesh:makeAxisXMesh(11,32),offset:[-5,side*8,13]}))),[0,0,0],"#344557");
+            add("シャーシ固定ボス",makeCompositeMesh([[-43,-15],[43,-15],[-43,15],[43,15]].map(([x,y])=>({mesh:makeCylinderMesh(5,2),offset:[x,y,9]}))),[0,0,0],"#c4cbd2");
+        }
+        if(stage>=2){
+            add("前後中空アクスル",makeCompositeMesh([-36,36].map(x=>({mesh:makeAxisYMesh(4,70),offset:[x,0,13]}))),[0,0,0],"#bdc9d4");
+            const tires=[],hubs=[],wheelNuts=[];
+            [-36,36].forEach(x=>[-1,1].forEach(side=>{
+                tires.push({mesh:makeTreadTireMesh(28,10),offset:[x,side*26,13]});
+                const details=[
+                    {mesh:makeWheelRingMesh(6.6,7.6,2.1)},
+                    {mesh:makeWheelSpokesMesh(5,2.4,7.2,1.9)},
+                    {mesh:makeAxisYMesh(5.8,2.2)}
+                ];
+                hubs.push({mesh:makeCompositeMesh(details),offset:[x,side*26,13]});
+                for(let nut=0;nut<5;nut++){
+                    const angle=nut*Math.PI*2/5;
+                    wheelNuts.push({mesh:makeAxisYMesh(1.5,1.4),offset:[x+Math.cos(angle)*5,side*26,13+Math.sin(angle)*5]});
+                }
+            }));
+            add("ブロックパターン・タイヤ × 4",makeCompositeMesh(tires),[0,0,0],"#171e27");
+            add("レッド5スポーク・ホイール × 4",makeCompositeMesh(hubs),[0,0,0],"#d7273d");
+            add("アルミホイールナット × 20",makeCompositeMesh(wheelNuts),[0,0,0],"#c6cdd4");
+            add("130モーター",makeAxisXMesh(15,27),[-7,0,4],"#aeb7c0");
+            add("モーター冷却スリーブ",makeCompositeMesh([-15,-7,1].map(x=>({mesh:makeAxisXMesh(15.8,1.4),offset:[x,0,4]}))),[0,0,0],"#46515c");
+            add("密閉ギヤケース",makeCenteredBoxMesh(25,21,3),[14,0,4],"#252e38");
+            add("スパーギヤ 24T",makeGearMesh(11,24,2.2),[22,0,2.5],"#c5cbd0");
+            add("ピニオンギヤ 10T",makeGearMesh(4.8,10,2.2),[8,0,2.5],"#e1b54d");
+        }
+        if(stage>=3){
+            const shell=[[-53,3.5,10,14],[-46,10,10,19],[-31,16,10,23],[-15,19,10,26],[8,20,10,27],[27,18,10,23],[43,12,10,18],[52,2,10,14]];
+            add("AERO-X メタリックボディ",makeBodyShellMesh(shell),[0,0,0],"#b8c0c8",true);
+            add("スモーク・キャノピー",makeBodyShellMesh([[-17,8,22,24],[-8,11,22,29],[3,12,22,31],[15,9,20,25],[20,5,18,21]]),[0,0,0],"#293b4b",true);
+            const graphics=[
+                {mesh:makeCenteredBoxMesh(28,1.5,.9),offset:[-31,-5,23.2]},
+                {mesh:makeCenteredBoxMesh(28,1.5,.9),offset:[-31,5,23.2]},
+                {mesh:makeCenteredBoxMesh(30,1.4,.8),offset:[6,-17.5,17.4]},
+                {mesh:makeCenteredBoxMesh(30,1.4,.8),offset:[6,17.5,17.4]},
+                {mesh:makeCenteredBoxMesh(14,1.4,.9),offset:[35,-10.7,17.2]},
+                {mesh:makeCenteredBoxMesh(14,1.4,.9),offset:[35,10.7,17.2]}
+            ];
+            add("レッド・レーシングストライプ",makeCompositeMesh(graphics),[0,0,0],"#d7273d",true);
+            const vents=[-1,1].flatMap(side=>[17,21,25].map(x=>({mesh:makeCenteredBoxMesh(1.1,6,.7),offset:[x,side*5.5,22]})));
+            add("ボンネット・エアアウトレット",makeCompositeMesh(vents),[0,0,0],"#303a45",true);
+            add("フロントカーボンスプリッター",makePlateMesh(12,48,2,0,2),[-49,0,6],"#202832");
+            add("レッドフロントバンパー",makePlateMesh(9,54,2,0,2),[-53,0,8],"#d7273d");
+            const wingParts=[
+                {mesh:makePlateMesh(16,42,2,0,4),offset:[43,0,23]},
+                ...[-1,1].map(side=>({mesh:makeCenteredBoxMesh(3,3,8),offset:[39,side*12,18]}))
+            ];
+            add("GTリアウイング",makeCompositeMesh(wingParts),[0,0,0],"#343c46",true);
+            add("ウイング・エンドプレート",makeCompositeMesh([-1,1].map(side=>({mesh:makeCenteredBoxMesh(2,3,12),offset:[43,side*19,24]}))),[0,0,0],"#d7273d",true);
+            const rollerMounts=[];
+            [-1,1].forEach(side=>rollerMounts.push({mesh:makePlateMesh(10,86,3,0,1.5),offset:[side*49,0,8.5]}));
+            add("カーボンローラーステー",makeCompositeMesh(rollerMounts),[0,0,0],"#343c46");
+            const rollers=[],rollerHubs=[],rollerBolts=[];
+            [-55,55].forEach(x=>[-1,1].forEach(side=>{
+                rollers.push({mesh:makeAxisYMesh(16,5),offset:[x,side*42,13]});
+                rollerHubs.push({mesh:makeAxisYMesh(7,1.2),offset:[x,side*44.2,13]});
+                rollerBolts.push({mesh:makeAxisYMesh(2.4,1),offset:[x,side*44.9,13]});
+            }));
+            add("レッドアルミガイドローラー × 4",makeCompositeMesh(rollers),[0,0,0],"#d7273d");
+            add("ローラーセンターハブ",makeCompositeMesh(rollerHubs),[0,0,0],"#b8c0c8");
+            add("ローラー固定ボルト",makeCompositeMesh(rollerBolts),[0,0,0],"#303a45");
+            add("LEDヘッドライト × 2",makeCompositeMesh([-1,1].map(side=>({mesh:makeAxisXMesh(5,2),offset:[-51,side*9,15]}))),[0,0,0],"#dce4e9",true);
+        }
+        return scene;
+    }
+
+    function makeFurnitureScene(stage){
+        const scene=[],fixed={type:"fixed",value:0};
+        const add=(name,mesh,offset,color)=>scene.push({id:name,name,mesh,offset,joint:fixed,displayColor:color});
+        if(stage>=1)add("天板 · 600 × 360",makePlateMesh(600,360,24,0,16),[0,0,690],"#c99a61");
+        if(stage>=2){
+            [-264,264].forEach(x=>[-144,144].forEach(y=>add("脚材",makeCenteredBoxMesh(36,36,690),[x,y,345],"#806348")));
+            [-142,142].forEach(y=>add("幕板 · 長辺",makeCenteredBoxMesh(505,24,104),[0,y,615],"#ab8055"));
+            [-246,246].forEach(x=>add("幕板 · 短辺",makeCenteredBoxMesh(24,250,104),[x,0,615],"#ab8055"));
+        }
+        if(stage>=3){
+            add("下棚",makePlateMesh(430,245,18,0,8),[0,0,260],"#c69a66");
+            [-250,250].forEach(x=>[-135,135].forEach(y=>add("木ねじ",makeCylinderMesh(8,3),[x,y,714],"#d8dfe4")));
+        }
+        return scene;
+    }
+
+    function makeHeroScene(stage){
+        return demoProject==="furniture"?makeFurnitureScene(stage):makeMini4wdScene(stage);
+    }
+
+    function drawSketchPreview(canvas,project){
+        const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
+        const dpr=Math.max(1,window.devicePixelRatio||1);canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+        const c=canvas.getContext("2d");c.setTransform(dpr,0,0,dpr,0,0);const w=rect.width,h=rect.height;
+        c.clearRect(0,0,w,h);c.lineWidth=1;c.strokeStyle="rgba(116,164,215,.12)";
+        for(let x=0;x<w;x+=24){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();}
+        for(let y=0;y<h;y+=24){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+        const furniture=project==="furniture",width=furniture?600:96,depth=furniture?360:52,scale=Math.min(w*.58/width,h*.56/depth),cx=w/2,cy=h*.53;
+        const sx=width*scale,sy=depth*scale;
+        c.strokeStyle="rgba(100,164,232,.62)";c.setLineDash([5,4]);c.beginPath();c.moveTo(cx,0);c.lineTo(cx,h);c.moveTo(0,cy);c.lineTo(w,cy);c.stroke();c.setLineDash([]);
+        c.fillStyle="rgba(96,190,183,.12)";c.strokeStyle="#7ce0d1";c.lineWidth=2;
+        if(furniture){
+            c.beginPath();c.rect(cx-sx/2,cy-sy/2,sx,sy);c.fill();c.stroke();
+            const leg=9*scale;
+            [-1,1].forEach(x=>[-1,1].forEach(y=>{c.strokeRect(cx+x*sx*.43-leg/2,cy+y*sy*.39-leg/2,leg,leg);}));
+            c.fillStyle="#d9e7f5";c.font="11px sans-serif";c.textAlign="center";c.fillText("天板 · 木目方向",cx,cy+4);
+        }else{
+            const outline=[[-48,-13],[-38,-19],[32,-19],[48,-11],[48,11],[32,19],[-38,19],[-48,13]];
+            c.beginPath();outline.forEach(([x,y],i)=>{const px=cx+x*scale,py=cy+y*scale;if(i)c.lineTo(px,py);else c.moveTo(px,py);});c.closePath();c.fill();c.stroke();
+            c.setLineDash([4,3]);[-1,1].forEach(x=>[-1,1].forEach(y=>{c.beginPath();c.arc(cx+x*31*scale,cy+y*20*scale,10*scale,0,Math.PI*2);c.stroke();}));c.setLineDash([]);
+            c.beginPath();c.arc(cx-3*scale,cy,9*scale,0,Math.PI*2);c.stroke();
+            c.fillStyle="#d9e7f5";c.font="10px sans-serif";c.textAlign="center";c.fillText("電池・モーター",cx-2,cy+3);
+        }
+        c.strokeStyle="#c7d7e8";c.fillStyle="#d9e7f5";c.lineWidth=1;
+        const dimensionY=cy+sy/2+20;c.beginPath();c.moveTo(cx-sx/2,dimensionY);c.lineTo(cx+sx/2,dimensionY);c.moveTo(cx-sx/2,dimensionY-4);c.lineTo(cx-sx/2,dimensionY+4);c.moveTo(cx+sx/2,dimensionY-4);c.lineTo(cx+sx/2,dimensionY+4);c.stroke();
+        c.font="11px sans-serif";c.textAlign="center";c.fillText(width+" mm",cx,dimensionY+15);
+        c.textAlign="left";c.fillStyle="#83e2ce";c.fillText(furniture?"DESK TOP · XY SKETCH":"MINI 4WD · CHASSIS SKETCH",12,20);
+        c.fillStyle="#8299b2";c.fillText(furniture?"天板・脚位置を寸法拘束":"シャーシ・車軸・モーター配置を拘束",12,36);
+    }
+
+    let demoProject="mini4wd";
+    const demoScenarios={
+        mini4wd:{
+            steps:["01 · SKETCH","02 · CHASSIS","03 · DRIVETRAIN","04 · AERO BODY"],
+            captions:["XYスケッチでシャーシ寸法と駆動系の基準を拘束。","押し出しで成形し、補強リブと電池ガイドを追加。","モーター・歯車・トレッドタイヤをアセンブリ。","メタリックボディに赤いホイールとローラーを装着。"],
+            features:["01 · CONSTRAINED XY SKETCH","02 · EXTRUDE + RIBS","03 · MOTOR + GEAR TRAIN","04 · SILVER AERO SHELL"],
+            dimensions:["CHASSIS 104 × 42 mm · R5","RIBS · BATTERY GUIDES · 2 CELLS","4 TREAD TIRES · RED SPOKES · 24T GEAR","SILVER BODY · RED WING · 4 ROLLERS"]
+        },
+        furniture:{
+            steps:["01 · SKETCH","02 · TOP","03 · FRAME","04 · SHELF"],
+            captions:["天板の幅・奥行と脚位置をスケッチ。","角を丸めた天板を板厚24 mmで作成。","脚と幕板を組み、机の高さを決定。","下棚と固定ねじを追加して完成。"],
+            features:["01 · DESK PLAN SKETCH","02 · ROUNDED TABLETOP","03 · LEGS + APRONS","04 · SHELF + FASTENERS"],
+            dimensions:["TOP 600 × 360 mm · R16","TABLETOP · 24 mm THICK","4 LEGS · APRONS · H 714 mm","1 TOP · 4 LEGS · LOWER SHELF"]
+        }
+    };
+
+    function setDemoStep(index){
+        demoStepIndex=index;demoTimer=performance.now();
+        const scenario=demoScenarios[demoProject];
+        $("demoCaption").textContent=scenario.captions[index];
+        document.querySelectorAll("[data-demo-step]").forEach((el,i)=>{
+            el.textContent=scenario.steps[i];el.classList.toggle("active",i===index);el.setAttribute("aria-pressed",String(i===index));
+        });
+        drawHero();
+    }
+
+    document.querySelectorAll("[data-demo-project]").forEach(button=>button.addEventListener("click",()=>{
+        demoProject=button.dataset.demoProject;
+        document.querySelectorAll("[data-demo-project]").forEach(item=>item.setAttribute("aria-pressed",String(item===button)));
+        $("heroCanvas").setAttribute("aria-label",demoProject==="furniture"?"DIYデスクの設計から組立までを段階表示する3Dデモ":"ミニ四駆風レーシングカーの設計から組立までを段階表示する3Dデモ");
+        setDemoStep(0);
+    }));
+    document.querySelectorAll("[data-demo-step]").forEach(button=>button.addEventListener("click",()=>{
+        demoTimer=performance.now();setDemoStep(Number(button.dataset.demoStep));
+    }));
+
+    function drawHero(){
+        const canvas=$("heroCanvas");
+        const scenario=demoScenarios[demoProject];
+        if(demoStepIndex===0)drawSketchPreview(canvas,demoProject);
+        else drawScene(canvas,makeHeroScene(demoStepIndex),demoAngle,-.58,demoProject==="mini4wd"?1.5:1.12);
+        $("demoFeature").textContent=scenario.features[demoStepIndex];$("demoDimensions").textContent=scenario.dimensions[demoStepIndex];
+    }
+
+    function animateDemo(time){
+        demoFrame=0;if(!demoPlaying)return;
+        demoAngle=-.5+Math.sin(time*.00032)*.18;
+        if(time-demoTimer>1450){demoTimer=time;demoStepIndex=(demoStepIndex+1)%demoScenarios[demoProject].steps.length;$("demoCaption").textContent=demoScenarios[demoProject].captions[demoStepIndex];document.querySelectorAll("[data-demo-step]").forEach((el,i)=>{el.textContent=demoScenarios[demoProject].steps[i];el.classList.toggle("active",i===demoStepIndex);el.setAttribute("aria-pressed",String(i===demoStepIndex));});}
+        drawHero();
+        demoFrame=requestAnimationFrame(animateDemo);
+    }
+
+    function createWorkbenchMini4wd(){
+        const parts=makeMini4wdScene(3),chassisPart=parts.shift();
+        const chassis=createParametric("plate","NX-01 レーシングシャーシ");
+        chassis.dimensions=[104,42,5];chassis.holeDiameter=0;chassis.cornerRadius=5;chassis.offset=chassisPart.offset.slice();chassis.displayColor=chassisPart.displayColor;chassis.mesh=buildMesh(chassis);
+        parts.forEach(part=>models.push({...part,id:newId(),profile:"mesh",parametric:false,generated:true,offset:part.offset.slice(),joint:{type:"fixed",value:0},history:[]}));
+    }
+
+    createWorkbenchMini4wd();
+    renderAll();updateProfileFields();renderStrengthModels();drawHero();
+    if(demoPlaying)demoFrame=requestAnimationFrame(animateDemo);
+})();
+</script>
+</body>
+</html>

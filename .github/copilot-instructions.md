@@ -9,8 +9,8 @@
 - 変更前に、何をどう変更するかを日本語で短く説明する。
 - 大きな変更(複数ファイル、仕様変更、削除)は、実行前に計画を提示して確認を取る。
 - 不明点は推測で進めず、日本語で質問する。
-- `index.html` は `index.src.html` をもとに `build.py` で生成される。生成物を直接編集せず、必ずソースを編集し、必要に応じて `python build.py` を実行する。
-- `build.py` は `index.src.html` に加えて `nx-journal-generator.template.html` を使い、`index.html`、`tolerance-tool-offline.html`、`nx-journal-generator.html`、`SHA256SUMS.txt` を生成する。生成物を更新した場合は、対象を確認して同じコミットに含める。
+- `index.html` と `cad-workbench-offline.html` は `index.src.html` をもとに `build.py` で生成される。生成物を直接編集せず、必ずソースを編集し、必要に応じて `python build.py` を実行する。
+- `build.py` は `index.html`、CSP付き単一ファイル版 `cad-workbench-offline.html`、その `SHA256SUMS.txt` を生成する。生成物を更新した場合は、対象を確認して同じコミットに含める。
 
 ## Git 運用
 - 詳細は `.github/instructions/git-workflow.instructions.md` に従う。
